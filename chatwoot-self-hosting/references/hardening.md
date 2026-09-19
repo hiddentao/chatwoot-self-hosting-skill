@@ -417,11 +417,32 @@ they ask for an installation URL: enter your own hostname in `domain.com` form,
 in place of Chatwoot's cloud address, press Connect, then log in with the normal
 credentials.
 
-Two things to know before you promise anyone the app works. SSO and SAML are
-cloud-only, per upstream issue #972, so the self-hosted login is a password plus
-the second factor, which is another reason the three encryption keys are not
-optional. And issue #13420, "Invalid URL in mobile app", reports Connect failing
-on some self-hosted setups: read it before you go looking at your own proxy.
+Two things to know before you promise anyone the app works.
+
+SSO and SAML are not available to you, and the reason is worth knowing because
+it is structural rather than a bug someone might fix. Chatwoot does have SAML at
+4.17.1, but every server-side part of it sits under `enterprise/`: the user
+builder, the settings controller, the account settings model and the OmniAuth
+initialiser are all in that tree. The CE build deletes that tree, and the
+dashboard ships a paywall component for the feature. The table it needs is in
+`db/migrate`, so a CE schema still carries the table with nothing to use it. So
+the self-hosted login is a password plus the second factor, which is another
+reason the three encryption keys are not optional. On the mobile side the same
+limit is reported as `chatwoot/chatwoot-mobile-app` issue 972, "SSO only shows
+for app.chatwoot.com", open when this was checked.
+
+That number needs its repository, and so does any other you carry from here. The
+mobile application has its own repository and its own issue numbering, while
+every other number in this skill is `chatwoot/chatwoot`. Issue 972 in the main
+repository is an unrelated feature request about profile name fields from 2020.
+
+Second, `chatwoot/chatwoot` issue 13420, "Invalid URL in mobile app", reported
+Connect failing on a self-hosted installation. Read it for the diagnosis rather
+than as a live defect: it was closed by a maintainer who attributed it to the
+reporter's TLS and domain configuration behind a third-party control panel, and
+it was never reproduced against Chatwoot itself. If your own Connect fails, that
+thread is a reasonable first place to look at your proxy and certificate, and
+not evidence that the app is broken against self-hosted installations generally.
 
 ##### The push relay is a privacy decision
 

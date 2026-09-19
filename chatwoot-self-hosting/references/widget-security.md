@@ -8,8 +8,35 @@ so re-read the upstream file before carrying any of this to another version.
 
 #### CVE-2025-12245
 
-The advisory is GHSA-hgg8-54gw-8v33. At 4.17.1 it is disclosed and unfixed. The
-vendor did not respond to the advisory.
+The advisory is GHSA-hgg8-54gw-8v33, published 2025-10-27. It names the function
+`initPostMessageCommunication` in `app/javascript/sdk/IFrameHelper.js`, says the
+manipulation of `baseUrl` leads to an origin validation error, and records that
+the vendor was contacted early and did not respond in any way. At 4.17.1 it is
+disclosed and unfixed.
+
+Do not use the advisory to decide whether you are affected. Its text says
+"chatwoot up to 4.7.0", it carries no machine-readable affected range at all,
+and it names no fixed version. Read the file on your own release instead: the
+three properties below were still present at 4.17.1, which is numerically well
+past the version the advisory names. An operator who checks the advisory, sees a
+range that appears not to cover them, and stops there will conclude they are
+safe while running the vulnerable code. Checking takes one request:
+
+```
+# Does your release still take the popout host out of the message?
+curl -fsS https://raw.githubusercontent.com/chatwoot/chatwoot/<your tag>/app/javascript/sdk/IFrameHelper.js \
+  | grep -n 'popoutChatWindow: ({\|e.origin\|e.source'
+```
+
+A `popoutChatWindow` handler destructuring `baseUrl` from its argument, with no
+`e.origin` or `e.source` test anywhere in the file, means the release is
+vulnerable whatever the advisory's version string says.
+
+The recorded severity is medium, with a CVSS vector of
+`AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N`. That scores a low confidentiality impact
+and no integrity impact, which sits oddly beside a conversation session being
+handed to another origin. Score it against your own installation rather than
+inheriting the number.
 
 Every embedding page loads `/packs/js/sdk.js`, which is built from
 `app/javascript/sdk/IFrameHelper.js`. That file is 344 lines at v4.17.1, and
@@ -97,7 +124,7 @@ The three ways out, and what each costs. This file describes the first:
 | --- | --- | --- |
 | Serve a patched copy from the proxy | Rebuild the file, rebase the patch if upstream moved the code | The article viewer, which is in the application bundle |
 | Fork and build an image | A rebase, an image build and an upgrade rehearsal against your own image | Nothing in the SDK, and the article viewer can be fixed in the same tree |
-| Wait for upstream | Nothing | Everything, for as long as the fix takes. The first attempt took nineteen months and was reverted |
+| Wait for upstream | Nothing | Everything, for as long as the fix takes. The first attempt sat open eighteen months, merged, and was reverted six days later |
 
 #### What the patch changes
 
@@ -153,11 +180,12 @@ running: it can tell you that the patch applied but did nothing, which a clean
 
 Worth knowing so nobody re-opens the decision.
 
-A fix, pull request 8879, merged on 2025-08-14 after nineteen months open, and
-was reverted six days later. The revert was not a rejection of origin
-validation. That implementation's `sanitizeURL` had no success path, so it
-always returned `about:blank`, and it compared `'https:'` against `'https'`. It
-broke the widget.
+A fix, pull request 8879, was opened on 2024-02-07 and merged on 2025-08-14,
+eighteen months later. It was reverted six days after that, on 2025-08-20, by
+pull request 12248. The revert was not a rejection of origin validation. That
+implementation's `sanitizeURL` had no success path, so it always returned
+`about:blank`, and it compared `'https:'` against `'https'`. It broke the
+widget.
 
 Pull request 13240 has been open since January 2026. It is substantially right
 and it breaks on a protocol-relative `baseUrl`, which is the case the patch here
@@ -359,15 +387,24 @@ route back, because the stale copies start being served the moment you do.
 
 #### The second CVE
 
-CVE-2025-12246 is a DOM cross-site scripting hole in the widget's article
-viewer. `IframeLoader.vue` binds `:src="url"`, and `ArticleViewer.vue` feeds
-that from the `link` query parameter of the widget's article route, so a value
-in the URL reaches an iframe source with no scheme check in between.
+CVE-2025-12246, advisory GHSA-8pv5-qj88-7mx6, published the same day as the
+first one and with the same note that the vendor was contacted early and did not
+respond. The advisory names the file
+`app/javascript/shared/components/IframeLoader.vue` and says the manipulation of
+the `link` argument results in cross-site scripting, reachable remotely. That
+much is first hand, read from the advisory on 2026-09-19.
 
-The write-up documenting this CVE returned 403 when it was read for this skill,
-and no archive copy was reachable. The mechanism above is second hand. Treat it
-as a lead to verify against your own release rather than as a confirmed finding,
-and check the advisory yourself before acting on it.
+What the advisory does not spell out, and what was pieced together from a
+write-up that returned 403 when it was read for this skill, is the exact path:
+`IframeLoader.vue` binding `:src` to a URL that `ArticleViewer.vue` feeds from
+the article route's query parameter, so a value in the URL reaches an iframe
+source with no scheme check in between. The file and the parameter are
+confirmed; the precise chain between them is not. Read those two components on
+your own release before acting on the detail.
+
+The same caution about version strings applies here. This advisory also says
+"up to 4.7.0" and names no fixed version, so it is not evidence that a later
+release is unaffected.
 
 What can be said with confidence is where the code lives. The article viewer is
 part of the widget's Vite bundle, inside the application, rather than the

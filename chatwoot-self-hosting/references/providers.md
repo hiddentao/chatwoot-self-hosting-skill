@@ -178,18 +178,41 @@ that exists, which reads like a missing bucket or a wrong name and is neither.
 ##### Two problems that are open upstream
 
 A store that a command-line client writes to happily is not proof that Chatwoot
-can write to it. Two open issues describe that gap on one widely used
-S3-compatible store, and they are why topology A used its provider's own:
+can write to it. Two issues open against `chatwoot/chatwoot` describe that gap,
+and both name Cloudflare R2 in their titles, so this is one place where the
+provider has to be named rather than generalised:
 
-| Issue | Symptom |
-| --- | --- |
-| #13299 | uploads fail silently on a checksum mismatch; the documented workaround patches `storage.yml` inside the image, which means building an image |
-| #11766 | a 404 propagation race on read |
+| Issue | Title, abbreviated | Symptom |
+| --- | --- | --- |
+| 13299 | images not uploaded or accessible when using `s3_compatible` with Cloudflare | uploads fail silently when the store rejects the AWS SDK's default checksum headers |
+| 11766 | client-sent audio returns 404 and `ERR_BLOCKED_BY_ORB` on Cloudflare | a 404 propagation race on read |
 
-Check both against any store you are considering. Then upload a real attachment
-through the dashboard and confirm the object appears in the bucket and downloads
-again. `tools/probe-stack.sh` exercises put, get and delete with the CLI, which
-is necessary and, for this reason, not sufficient.
+Both were open when this was checked. That is why topology A used its own
+provider's store rather than R2, despite R2 being the more familiar choice in
+that account.
+
+The first has two workarounds in its thread, and the cheaper one is worth
+knowing before you rule a store out over it. Patching `config/storage.yml`
+inside the image works and costs you an image build and a rebase every release.
+Setting the AWS SDK's own environment variables does the same job on a stock
+image:
+
+```
+AWS_REQUEST_CHECKSUM_CALCULATION=when_required
+AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+```
+
+Two lines in your environment file and no build. Upload a real attachment to
+confirm it before you rely on it.
+
+Do not read this as "R2 is broken and everything else works". Read it as
+evidence that `s3_compatible` is a compatibility surface with real gaps, and
+that the gaps show up in Chatwoot rather than in your storage client. Check both
+issues against whatever you are considering, including R2 if its own issue has
+since closed. Then upload a real attachment through the dashboard and confirm
+the object appears in the bucket and downloads again.
+`tools/probe-stack.sh` exercises put, get and delete with the CLI, which is
+necessary and, for exactly this reason, not sufficient.
 
 ##### The key
 
@@ -504,13 +527,13 @@ Check this list before choosing a component because you have used it before.
 | `cwctl` for upgrading a custom branch | ruled out by Chatwoot's own documentation | Chatwoot docs |
 | A managed database on a non-default port, left unconfigured | the entrypoint's readiness probe waits for ever with no useful error | [the port](#the-port) |
 | A provider `statement_timeout` in the low tens of seconds | a migration is killed partway | [upgrades](upgrades.md#the-statement-timeout) |
-| The object store behind #13299 and #11766 | uploads fail silently on a checksum; a 404 race on read | [object storage](#object-storage) |
+| Cloudflare R2 as the object store, per issues 13299 and 11766 | uploads fail silently on a checksum; a 404 race on read | [object storage](#object-storage) |
 | A send-only mail provider, alone | replies to transcripts are lost, silently | [email](email.md#receiving-is-a-second-provider) |
 | An edge header any client can set, used as the client address | every client picks its own rate-limit bucket | [the client address](#the-client-address) |
 | A redirect from 80 to 443 on the origin, behind an edge that speaks HTTP to it | redirect loop | [both ports](#why-the-origin-serves-both-ports) |
-| Skipping from a 3.x release to 4.2 or later on an installation with real users | the migration fails; a stop at v4.1 is mandatory, and upstream closed the report as not planned | #12088 |
-| SSO or SAML against a self-hosted installation | not available; password and a second factor is the path | #972 |
-| The mobile app against some self-hosted installations | Connect fails with an invalid-URL error | #13420 |
+| Skipping from a 3.x release to 4.2 or later on an installation with real users | the migration fails; a stop at v4.1 is mandatory, and upstream closed the report as not planned | issue 12088 |
+| SSO or SAML on a CE image | the SAML code is entirely under `enterprise/`, which the CE build deletes, and the dashboard ships a paywall component for it; password plus a second factor is the path | read at 4.17.1 |
+| The mobile app against a self-hosted installation with an unusual TLS or domain setup | one report of "Invalid URL" at connect, closed by a maintainer as a configuration problem on the reporter's side rather than reproduced | issue 13420, closed |
 
 One reminder rather than a combination: whether the dashboard survives a strict
 Content Security Policy in front of it is on
