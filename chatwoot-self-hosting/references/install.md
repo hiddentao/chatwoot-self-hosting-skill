@@ -578,7 +578,7 @@ several of them is to survive the host:
   an origin reachable without going through the edge, the unfixed article-viewer
   XSS, message previews crossing a push relay.
 
-That last line is the one that gets skipped. A risk someone wrote down is a
+Write the last line down even when it feels obvious. A recorded risk is a
 decision with a name against it; the same risk unwritten is something the next
 person finds and has to re-litigate. With the digest recorded,
 [upgrades](upgrades.md#pinning-a-release) is what changes it.

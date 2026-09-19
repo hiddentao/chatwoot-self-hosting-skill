@@ -36,7 +36,7 @@ proxy, the SDK or an inbox.
 #### Outside-in
 
 `tools/verify.sh` runs these. It needs `curl` and `openssl` and nothing else, so
-it runs from a laptop on a different network, which is the point:
+it runs from a laptop on a different network, which is where it should run:
 
 ```
 BASE_URL=https://chat.example.com \

@@ -20,7 +20,7 @@ otherwise                       ->  chatwoot/chatwoot:<sanitized ref>-ce
 
 So a merge to master republishes `latest-ce`, a push to `develop` publishes
 `develop-ce`, and a release tag publishes `vX.Y.Z-ce`. The same job produces
-both kinds of tag, which is the point worth holding on to: a release tag is not
+both kinds of tag. So a release tag is not
 safer by accident, it is safer because its name is derived from a ref that
 cannot move.
 
@@ -159,7 +159,7 @@ It is never public. Bind its port to loopback on a port production does not use,
 `127.0.0.1:3001`, and reach it over the same SSH tunnel you use for the admin
 console. The proxy knows nothing about it, so there is nothing to get wrong.
 
-Two of the three are structural, which is the point: a missing service cannot be
+Two of the three are structural: a missing service cannot be
 started by accident, and a loopback port is not reachable from anywhere else.
 The third is configuration, but of a kind that fails the safe way. An address
 that cannot connect fails loudly in the log, where a flag saying do not send
