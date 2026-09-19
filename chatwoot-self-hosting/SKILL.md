@@ -40,13 +40,13 @@ references the task needs.
 | Reference | Open it when you are | Lines |
 | --- | --- | --- |
 | [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 576 |
-| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 509 |
-| [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 460 |
-| [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 538 |
-| [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 299 |
-| [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 477 |
+| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 511 |
+| [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 457 |
+| [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 530 |
+| [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 290 |
+| [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 476 |
 | [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 420 |
-| [verification](references/verification.md) | about to claim the installation is safe | 286 |
+| [verification](references/verification.md) | about to claim the installation is safe | 280 |
 
 `tools/` beside them holds what is worth having exactly rather than retyped: the
 SDK patch and its build script, the Rails console scripts, the compose and proxy
@@ -217,7 +217,8 @@ routine. This is the shape that was built and measured. See
 **Topology B: one box.** Postgres, Redis and file storage live on the host, and
 the proxy answers visitors directly. Fewer moving parts and fewer bills, and you
 take on backups, recovery and the database upgrade yourself. The requirements
-are stated and the templates are written, and this topology was **not verified**.
+are stated and the templates are written, and this topology was
+**not verified**.
 See [providers](references/providers.md#topology-b-one-box).
 
 Known-bad combinations, with the open issues behind them, are in

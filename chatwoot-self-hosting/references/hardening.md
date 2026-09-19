@@ -345,9 +345,8 @@ unread counts on are choices about the shape of this installation. Keep them
 asserted so a change is deliberate, and change the assertion when you change the
 decision.
 
-`PlatformApp.none?` stays at zero however many people you are. A team is a
-reason for more users, and never a reason for a token that creates confirmed
-users without signup.
+`PlatformApp.none?` stays at zero however many people you are: a platform token
+creates confirmed users without signup, which no headcount changes.
 
 `User.where(otp_required_for_login: false).none?` already scales. It says every
 user, however many there are, so a new colleague who has not enrolled yet shows

@@ -88,6 +88,24 @@ for (const [file, text] of files) {
     }
   }
   check(!/[—–]/.test(text), `${file}: contains an em or en dash`);
+
+  // Prose wraps at 80. Fenced code is quoted verbatim and must not be reflowed,
+  // table rows have nowhere to break, and a bare link cannot wrap at all. This
+  // rule exists because editing a sentence in place without rewrapping the
+  // paragraph around it is the easiest way to lose the wrap, and it happened
+  // three times in one afternoon.
+  let fenced = false;
+  // The frontmatter's description is one line by spec and cannot be wrapped.
+  let frontmatter = text.startsWith("---\n");
+  text.split("\n").forEach((line, i) => {
+    if (frontmatter) { if (i > 0 && line === "---") frontmatter = false; return; }
+    if (/^\s*```/.test(line)) { fenced = !fenced; return; }
+    if (fenced || line.length <= 80) return;
+    if (/^\s*\|/.test(line)) return;                     // table row
+    if (/^\s*\[[^\]]+\]:\s*\S+$/.test(line)) return;     // link definition
+    if (/^\s*\S+$/.test(line)) return;                   // one unbreakable token
+    fail.push(`${file}:${i + 1}: prose line is ${line.length} columns, max 80`);
+  });
 }
 
 // --- every variable a template needs is one env.template defines ------------

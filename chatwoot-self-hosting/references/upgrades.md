@@ -197,8 +197,8 @@ point-in-time copy. The rehearsal still needs the same three things: a copy of
 your data, a stack that cannot reach anyone, and a way to throw both away.
 
 This procedure is derived from the requirements above and **was not tested**.
-Topology B itself was not verified either, so treat what follows as a shape to
-work from: [providers](providers.md#topology-b-one-box).
+Topology B itself was **not verified** either, so treat what follows as a shape
+to work from: [providers](providers.md#topology-b-one-box).
 
 ```
 # 1. Copy the data into a second database on the same server.

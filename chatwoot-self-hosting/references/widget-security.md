@@ -33,10 +33,10 @@ A `popoutChatWindow` handler destructuring `baseUrl` from its argument, with no
 vulnerable whatever the advisory's version string says.
 
 The recorded severity is medium, with a CVSS vector of
-`AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N`. That scores a low confidentiality impact
-and no integrity impact, which sits oddly beside a conversation session being
-handed to another origin. Score it against your own installation rather than
-inheriting the number.
+`AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N`. Both halves of that are worth arguing
+with on your own installation: `C:L` for a conversation session handed to
+another origin, and `I:N` for a handler that writes an attacker's session into
+the visitor's browser. Score it yourself rather than inheriting the number.
 
 Every embedding page loads `/packs/js/sdk.js`, which is built from
 `app/javascript/sdk/IFrameHelper.js`. That file is 344 lines at v4.17.1, and
@@ -47,9 +47,9 @@ tag on 2026-09-19.
 `window.onmessage` handler on the embedding page. Its guard, lines 102 to 107,
 applies two tests to each message: is `e.data` a string, and does it start with
 the prefix `chatwoot-widget:`. Lines 108 to 111 then parse the remainder as JSON
-and call the function named by the message's `event` field. Nothing on that path reads `e.origin`, and nothing reads
-`e.source`. Any message carrying the prefix is handled as though the widget
-iframe had sent it.
+and call the function named by the message's `event` field. Nothing on that
+path reads `e.origin`, and nothing reads `e.source`. Any message carrying the
+prefix is handled as though the widget iframe had sent it.
 
 `sendMessage`, lines 93 to 99, posts to the widget frame with a target origin of
 `'*'`. Whatever ends up in that frame is offered the message contents.
@@ -122,9 +122,9 @@ which cancel each other out.
 Close to zero is an average, not a promise. A commit reducing the bundle's size
 landed on 2026-08-24, three days before 4.17.1 was published, and the patch
 still applied because it did not touch the three places that matter. That is the
-normal case and it is also exactly why the drift check exists: the reason to
-compare hashes every release is that a release which moves the file usually
-moves a part you do not care about, right up until one does not.
+usual outcome, and it is why the hash comparison is per release rather than per
+rebase: the release that moves a part you do care about looks identical until
+you diff it.
 
 The three ways out, and what each costs. This file describes the first:
 
@@ -186,8 +186,6 @@ running: it can tell you that the patch applied but did nothing, which a clean
 
 #### Upstream history
 
-Worth knowing so nobody re-opens the decision.
-
 A fix, pull request 8879, was opened on 2024-02-07 and merged on 2025-08-14,
 eighteen months later. It was reverted six days after that, on 2025-08-20, by
 pull request 12248. The revert was not a rejection of origin validation. That
@@ -235,7 +233,8 @@ from the same tree is a file you cannot account for, and you would be serving it
 to every visitor with the SDK's full access to the page.
 
 So the script stops there. It does not write `sdk.js`, and it exits non-zero.
-The skill ships a starting baseline for v4.17.1 in `tools/sdk/upstream.sha256`, beside the patch:
+The skill ships a starting baseline for v4.17.1 in `tools/sdk/upstream.sha256`,
+beside the patch:
 
 ```
 5b1eb8190acffdb5761e4210947478b1b2a6600507e3a117a657cc97d9b592aa v4.17.1
@@ -438,8 +437,6 @@ the branding job discussed in [hardening](hardening.md#branding) are in the same
 tree.
 
 #### What this patch does not do
-
-Worth stating, so the patch is not credited with more than it does.
 
 It does not authenticate the widget iframe's contents. It proves a message came
 from that frame at that origin. If the Chatwoot origin itself is running

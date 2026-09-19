@@ -115,19 +115,12 @@ are run, which is the same way.
 | Every widget inbox restricts framing | No inbox has blank allowed domains. Blank removes the framing restriction rather than defaulting closed |
 | Every widget inbox requires signed identities | No inbox accepts an unsigned identity, so no visitor can claim another |
 
-Twelve assertions. Two encode the single-operator model: exactly one user, and
-exactly one account membership. Those are the only two a team changes, and it
-changes them to its own roster rather than deleting them. Of the remaining ten,
-seven are security facts that hold whatever shape your installation is. Three
-are choices this skill made rather than invariants: no API-channel inbox, no
-help-centre portal, and unread counts on. Change one of those only when you have
-changed the decision behind it, and write down why. Editing them to match reality is the correct move; deleting them is
-not, because the count is what tells you an invitation was accepted.
-
-The two that look like headcount and are not: no platform apps, and a second
-factor on every user. Those are as true of a team of twelve as of one person, so
-a team keeps them exactly as written. See
-[hardening](hardening.md#the-single-operator-model).
+Twelve assertions. Not all of them are universal: two encode the single-operator
+model, and three encode choices this skill made about the shape of the
+installation rather than security facts.
+[hardening](hardening.md#the-single-operator-model) sorts them and says what a
+team changes. Whatever you change, edit the assertion to match reality rather
+than deleting it, because an assertion nobody makes is a question nobody asks.
 
 The two per-inbox assertions iterate over every widget inbox, so a new inbox
 created without allowed domains fails the audit the next time it runs. That is
@@ -254,7 +247,8 @@ observed to work. Topology A is the shape that was built and measured. See
 [providers](providers.md#topology-b-one-box).
 
 An undocumented SMTP provider. Sending through a provider that is not on
-Chatwoot's documented list works in principle and was not confirmed end to end.
+Chatwoot's documented list works in principle and was **not verified** end to
+end.
 
 Creating `pg_stat_statements` as a managed cluster's privileged role. The other
 four extensions were created this way; this one was not separately confirmed.

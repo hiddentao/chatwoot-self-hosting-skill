@@ -6,7 +6,6 @@ one visitor as one contact across several origins.
 Everything here was read in Chatwoot 4.17.1. The paths and line numbers are the
 ones in that release, and none of these behaviours are a documented contract.
 
-
 #### One account
 
 Run one account, with one inbox per trust boundary. Every isolation property
@@ -88,7 +87,6 @@ A visitor sees their earlier conversations only inside one inbox, and only once
 their identity has been verified. That second condition is the one people miss;
 [Signing an identifier](#signing-an-identifier) explains it.
 
-
 #### Creating a website inbox
 
 `tools/rails/add-website.rb` creates or updates one inbox with the hardened
@@ -162,7 +160,6 @@ the HMAC token can sign any identity, which means reading a visitor's
 conversation from before they signed up. A terminal keeps scrollback, and
 script output gets pasted into places it should not be.
 
-
 #### Allowed domains
 
 A blank `allowed_domains` does not merely fail to add a restriction. It deletes
@@ -226,7 +223,6 @@ the domain list as a partial statement rather than the whole rule.
 This was read in the code at 4.17.1 and has not been tested against a live
 installation.
 
-
 #### The cookie and its scope
 
 The widget keeps its conversation in a cookie on the page's own host.
@@ -271,7 +267,6 @@ Set nothing in `chatwootSettings` that widens the cookie:
 The `integrity` attribute pins the patched SDK you serve, and changing that
 file means changing this hash on every embedding page at the same time. See
 [widget-security](widget-security.md#rolling-out-a-new-hash).
-
 
 #### Signing an identifier
 
@@ -450,7 +445,6 @@ every page that embeds the widget. Nothing about your installation should
 depend on it being hard to find. The HMAC token is a signing key, so keep it
 where you keep signing keys.
 
-
 #### Rotating the HMAC token
 
 Rotation invalidates every hash already issued. Until each signer holds the new
@@ -470,7 +464,6 @@ Do it in this order.
 
 The website token does not change, so no embedding page needs editing and no
 integrity hash moves.
-
 
 #### Assigning conversations
 
@@ -535,4 +528,3 @@ Assignment and membership answer different questions. The rule decides whose
 queue a conversation lands in; `InboxMember` decides who gets told about it.
 Set both, or you get assigned conversations nobody hears about.
 
----

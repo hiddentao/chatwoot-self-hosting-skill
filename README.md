@@ -17,16 +17,16 @@ Chatwoot Community Edition is quick to stand up and quick to leave open. A
 default installation exposes an endpoint that creates an administrator without
 asking who you are, an admin console that takes a password and no second factor,
 a chat widget any website can embed, and a widget script carrying a published
-vulnerability that Chatwoot has not fixed. The installation works. The dashboard
-is green. Somebody else finds the problems.
+vulnerability that Chatwoot has not fixed. The installation works, the dashboard
+is green, and the problems are found by someone else.
 
 This skill came out of building one such installation properly and writing down
 everything that went wrong. Most of that turned out to have nothing to do with
 the hosting provider: it was Chatwoot behaviour that is not documented, does not
-fail loudly, and costs an evening each time you meet it. A setting whose value
-`off` means on. A database port that makes the container wait for ever instead
-of reporting an error. A migration killed by a timeout nobody set. A widget that
-any site can embed because the domain list was left blank.
+fail loudly, and costs an evening each time you meet it: a setting whose value
+`off` means on, a database port that makes the container wait for ever instead
+of reporting an error, a migration killed by a timeout nobody set, a widget any
+site can embed because the domain list was left blank.
 
 The skill gives an agent eleven rules, eight reference files and a set of
 working files: the widget patch and the script that builds and tests it, the

@@ -120,11 +120,12 @@ probe as a port problem until you have disproved it.
 
 #### Statement timeouts
 
-A provider default in the low tens of seconds is enough to kill a migration and not
-enough to notice in normal use. The managed cluster topology A used defaults to
-14 seconds, and a single migration on a table with real rows in it runs longer
-than that. Upstream knows: its own Procfile runs the prepare step with
-`POSTGRES_STATEMENT_TIMEOUT=600s`. The Docker upgrade documentation omits it.
+A provider default in the low tens of seconds is enough to kill a migration,
+and not enough to notice in normal use. The managed cluster topology A used
+defaults to 14 seconds, and a single migration on a table with real rows in it
+runs longer than that. Upstream knows: its own Procfile runs the prepare step
+with `POSTGRES_STATEMENT_TIMEOUT=600s`. The Docker upgrade documentation omits
+it.
 
 Do not put `POSTGRES_STATEMENT_TIMEOUT` in `.env`. The low default is what
 protects the live application from one runaway query, and raising it for every
@@ -205,14 +206,13 @@ AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
 Two lines in your environment file and no build. Upload a real attachment to
 confirm it before you rely on it.
 
-Do not read this as "R2 is broken and everything else works". Read it as
-evidence that `s3_compatible` is a compatibility surface with real gaps, and
-that the gaps show up in Chatwoot rather than in your storage client. Check both
-issues against whatever you are considering, including R2 if its own issue has
-since closed. Then upload a real attachment through the dashboard and confirm
-the object appears in the bucket and downloads again.
-`tools/probe-stack.sh` exercises put, get and delete with the CLI, which is
-necessary and, for exactly this reason, not sufficient.
+The general lesson is about `s3_compatible` rather than about R2: it is a
+compatibility surface with real gaps, and the gaps surface in Chatwoot rather
+than in your storage client. Check both issues against whatever you are
+considering, including R2 if its own issue has since closed. Then upload a real
+attachment through the dashboard and confirm the object appears in the bucket
+and downloads again. `tools/probe-stack.sh` exercises put, get and delete with
+the CLI, which is necessary and, for exactly this reason, not sufficient.
 
 ##### The key
 
@@ -425,12 +425,12 @@ rotates within its provider's range locks you out whenever it moves, and it
 moves mid-command as readily as between sessions, which on a provisioning run
 leaves the installation in a state you then have to work out.
 
-The alternative is to allow the range your address moves within and to say why
-in the risk list. What that costs is real: anyone else on that provider's range
-can reach the port. What it does not cost is entry, because the key is what
-opens the door and the address only decides who may knock. An installation
-locked behind a rule its operator cannot satisfy is not more secure, it is
-unadministrable, and the repair is usually done in a hurry.
+The alternative is to allow the range your address moves within, and to record
+that choice in the risk list. It costs you something real: anyone else on that
+provider's range can reach the port. They still need the key to get in, since
+the source rule controls who can reach SSH and the key controls who can
+authenticate. Weigh that against the failure mode of the tighter rule, which is
+an operator locked out of their own installation and repairing it in a hurry.
 
 Two consequences either way. Make the allowed source a setting rather than
 something a script infers from whoever is running it, or a repeat run will

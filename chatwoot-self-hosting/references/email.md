@@ -6,7 +6,6 @@ receiving replies is a second purchase.
 Everything here was read in Chatwoot 4.17.1. The paths and line numbers are the
 ones in that release, and none of these behaviours are a documented contract.
 
-
 #### The compromise
 
 A web-widget inbox cannot have its own From address. Transcript mail to a
@@ -64,7 +63,6 @@ otherwise a search.
 | Replies that land back in the conversation | A receiving provider Chatwoot has an adapter for | A second provider, and one reply-parsing domain for the whole account |
 | Operator mail that names each brand | Nothing available | Choose a sender that names the installation |
 
-
 #### The dead end column
 
 There is a per-inbox column `inboxes.email_address`. Two methods in
@@ -103,7 +101,6 @@ email for a widget inbox before any per-inbox logic runs. The limit is not an
 artefact of old code waiting to be modernised. It survives the modernisation.
 
 Do not build on it.
-
 
 #### Email-channel inboxes have their own address
 
@@ -157,7 +154,6 @@ can arrive from. A site whose visitors only ever chat does not need it, and a
 transcript from the account address is a smaller compromise than a mailbox
 nobody watches.
 
-
 #### Operator mail is global
 
 Notification, invitation and password-reset mail comes from
@@ -175,7 +171,6 @@ verified, because no conversation ever goes through it. It is exercised only
 when somebody is locked out, which is the worst moment to find out that the
 mail does not arrive.
 
-
 #### What custom_reply_domain and custom_reply_email are
 
 They are Community Edition, not premium, and they are visibility toggles in the
@@ -186,10 +181,9 @@ There is no `custom_email_domain_enabled` column. That name is an i18n key,
 which is why a grep for it turns up a translation string and no behaviour, and
 why the feature reads as gated when nothing gates it.
 
-The end-to-end behaviour of `custom_reply_domain` was not verified. Treat it as
-unconfirmed until you have tested it on your own release: see
+The end-to-end behaviour of `custom_reply_domain` was **not verified**. Treat
+it as unconfirmed until you have tested it on your own release: see
 [verification](verification.md#claims-that-were-not-verified).
-
 
 #### Deliverability
 
@@ -228,10 +222,9 @@ An email-channel inbox with an address on an unverified domain is a
 configuration that looks complete and delivers nothing.
 
 Sending through an SMTP provider that is not on Chatwoot's documented provider
-list works in principle and was not verified. If you use one, prove it with a
-real password reset before you rely on it, and see
+list works in principle and was **not verified**. If you use one, prove it with
+a real password reset before you rely on it, and see
 [verification](verification.md#claims-that-were-not-verified).
-
 
 #### Receiving is a second provider
 
@@ -270,7 +263,6 @@ Then say so in the address itself. `no-reply@mail.example.com` tells a visitor
 what will happen to a reply before they write it. `support@example.com`
 promises something the installation is not delivering.
 
-
 #### What to test
 
 Run these after the installation is public, and again after every upgrade. All
@@ -296,4 +288,3 @@ Put the mail tests in the upgrade rehearsal too, against the copy of the data,
 so a release that changes a mailer is caught before it changes yours. See
 [upgrades](upgrades.md#rehearsing-without-a-fork).
 
----

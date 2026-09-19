@@ -70,10 +70,11 @@ reaches the origin, and nothing else. Outbound: everything. The full shape, and
 the reasoning behind the SSH row, is in
 [providers](providers.md#the-firewall).
 
-Publish Rails on `127.0.0.1:3000`, never on `0.0.0.0`. The proxy reaches it over
-the compose network and nothing on the public interface can. That binding, more
-than the firewall, is what lets the whole application run before any name points
-at the host. When SSH stops answering, your own address has usually moved:
+Publish Rails on `127.0.0.1:3000`, never on `0.0.0.0`. Inside the container it
+still listens on `0.0.0.0`, which is how the proxy reaches it over the compose
+network; what is restricted is the published port. That restriction, more than
+the firewall, is what lets the whole application run before any name points at
+the host. When SSH stops answering, your own address has usually moved:
 repoint that one rule before you suspect the host.
 
 #### Preparing the database
@@ -106,7 +107,7 @@ and fix the permissions:
 [providers](providers.md#ownership-or-the-grants-that-stand-in-for-it). In
 topology B the same file runs unattended from the container's initdb directory
 on an empty data directory, where the application role already owns everything.
-Not verified.
+That path was **not verified**.
 
 Managed clusters usually keep a trusted-source list. Add the host to it now.
 Watch for one trap: a cluster with no trusted sources at all accepts every
@@ -136,7 +137,7 @@ Check your store against the two open issues in
 In topology B there is no bucket. Set `ACTIVE_STORAGE_SERVICE=local`, mount
 `/app/storage` on both Rails and Sidekiq because both write to it, and add that
 volume to your backups: it is the one piece of state the database cannot
-recreate. Not verified.
+recreate. That path was **not verified**.
 
 #### Writing the environment
 
@@ -174,7 +175,7 @@ Either route is fine; pick one. Then the values that are not generated:
 | --- | --- |
 | `FRONTEND_URL` | the public URL exactly, scheme and host |
 | `DOMAIN` | the bare hostname the proxy answers TLS on |
-| `FORCE_SSL` | `false` in topology A, where TLS ends at the edge; `true` in topology B |
+| `FORCE_SSL` | `false` in topology A, where the proxy already marks requests as https; `true` in topology B |
 | `ENABLE_ACCOUNT_SIGNUP` | exactly `false`, and check the database later |
 | `POSTGRES_HOST`, `POSTGRES_PORT` | the private host and the port you measured |
 | `PGSSLMODE` | `require` for a managed cluster; absent in topology B |
@@ -450,7 +451,7 @@ verifies the origin's certificate: install one from the edge provider's origin
 CA and point the proxy at it instead of its internal authority.
 See [providers](providers.md#the-edge).
 
-Topology B inverts this step, and was not verified. The proxy gets its
+Topology B inverts this step, and was **not verified**. The proxy gets its
 certificate from a public authority, which needs the hostname to resolve first.
 The private window then has to be held by the firewall rather than by DNS: allow
 80 and 443 from your own address only, complete every step above, and open those
@@ -471,9 +472,10 @@ Then the database, which proves the settings no page displays:
 docker compose exec -T rails bundle exec rails runner - < tools/rails/audit.rb
 ```
 
-Every line must read `ok`. Neither run substitutes for the other, and the
-dashboard substitutes for neither. Each website token you pass to `verify.sh`
-loads the widget once, creating one throwaway anonymous contact in that inbox.
+Every line must read `ok`. Run both, for the reason in
+[verification](verification.md#two-proofs-and-what-neither-of-them-is). Each
+website token you pass to `verify.sh` loads the widget once, creating one
+throwaway anonymous contact in that inbox.
 
 Four checks neither tool can make:
 
