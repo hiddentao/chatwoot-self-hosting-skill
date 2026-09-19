@@ -8,14 +8,14 @@ metadata:
 
 # Self-hosted Chatwoot
 
-Chatwoot Community Edition is quick to stand up and quick to leave open. A
-default installation exposes an unauthenticated endpoint that mints a confirmed
-super admin, an admin console with no second factor, a widget any site may
-embed, and a widget SDK carrying a disclosed vulnerability with no upstream fix.
-None of these announce themselves. The installation works, the dashboard is
-green, and the problems are found by someone else.
+A default Chatwoot Community Edition installation leaves four things for the
+operator to close: an unauthenticated endpoint that mints a confirmed super
+admin, an admin console with no second factor, a widget any site may embed, and
+a widget SDK carrying a disclosed vulnerability with no upstream fix. None of
+them announce themselves, and a working installation looks the same either way,
+which is why the last rule is about proving it rather than assuming it.
 
-The rules below close those gaps. They apply to any provider. Under each rule,
+The rules below close all four. They apply to any provider. Under each rule,
 the mechanism is named, because the mechanism is what tells you whether the rule
 still holds on your release.
 

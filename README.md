@@ -13,12 +13,12 @@ every release is pinned and rehearsed first.
 
 ## What this is
 
-Chatwoot Community Edition is quick to stand up and quick to leave open. A
-default installation exposes an endpoint that creates an administrator without
-asking who you are, an admin console that takes a password and no second factor,
-a chat widget any website can embed, and a widget script carrying a published
-vulnerability that Chatwoot has not fixed. The installation works, the dashboard
-is green, and the problems are found by someone else.
+A default Chatwoot Community Edition installation leaves four things for the
+operator to close: an endpoint that creates an administrator without asking who
+you are, an admin console that takes a password and no second factor, a chat
+widget any website can embed, and a widget script carrying a published
+vulnerability that Chatwoot has not fixed. None of them announce themselves, and
+a working installation looks the same either way.
 
 The skill gives an agent eleven rules, eight reference files and a set of
 working files: the widget patch and the script that builds and tests it, the
