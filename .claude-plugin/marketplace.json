@@ -1,0 +1,37 @@
+{
+  "name": "chatwoot-self-hosting-skill",
+  "owner": {
+    "name": "hiddentao",
+    "url": "https://github.com/hiddentao"
+  },
+  "description": "Deployment, hardening and operations rules for a self-hosted Chatwoot installation",
+  "plugins": [
+    {
+      "name": "chatwoot-self-hosting",
+      "source": "./",
+      "description": "Deploy, harden, operate and review a self-hosted Chatwoot installation on any provider, with the widget SDK patched and every inbox locked to the sites allowed to embed it.",
+      "version": "1.0.0",
+      "author": {
+        "name": "hiddentao",
+        "url": "https://github.com/hiddentao"
+      },
+      "homepage": "https://github.com/hiddentao/chatwoot-self-hosting-skill",
+      "repository": "https://github.com/hiddentao/chatwoot-self-hosting-skill",
+      "license": "MIT",
+      "category": "development",
+      "keywords": [
+        "chatwoot",
+        "self-hosting",
+        "live-chat",
+        "support",
+        "docker",
+        "security",
+        "agent-skills"
+      ],
+      "skills": [
+        "./chatwoot-self-hosting"
+      ],
+      "strict": false
+    }
+  ]
+}

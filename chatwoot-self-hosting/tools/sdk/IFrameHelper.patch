@@ -1,0 +1,141 @@
+diff --git a/app/javascript/sdk/IFrameHelper.js b/app/javascript/sdk/IFrameHelper.js
+index e38f4e0..02b36aa 100644
+--- a/app/javascript/sdk/IFrameHelper.js
++++ b/app/javascript/sdk/IFrameHelper.js
+@@ -41,6 +41,11 @@ const updateAuthCookie = (cookieContent, baseDomain = '') =>
+     baseDomain,
+   });
+ 
++// The only origin the widget iframe is ever served from. Resolved against the
++// page so that protocol-relative and path-only base URLs still yield an origin.
++const widgetOrigin = () =>
++  new URL(window.$chatwoot.baseUrl, window.location.href).origin;
++
+ const updateCampaignReadStatus = baseDomain => {
+   const expireBy = new Date(Date.now() + 60 * 60 * 1000);
+   setCookieWithDomain('cw_snooze_campaigns_till', Number(expireBy), {
+@@ -94,12 +99,18 @@ export const IFrameHelper = {
+     const element = IFrameHelper.getAppFrame();
+     element.contentWindow.postMessage(
+       `chatwoot-widget:${JSON.stringify({ event: key, ...value })}`,
+-      '*'
++      widgetOrigin()
+     );
+   },
+   initPostMessageCommunication: () => {
++    // Accepts messages only from the widget iframe's own window and origin.
++    // Any other frame, opener or origin on the page is ignored.
+     window.onmessage = e => {
++      const frame = IFrameHelper.getAppFrame();
+       if (
++        !frame ||
++        e.source !== frame.contentWindow ||
++        e.origin !== widgetOrigin() ||
+         typeof e.data !== 'string' ||
+         e.data.indexOf('chatwoot-widget:') !== 0
+       ) {
+@@ -232,7 +243,10 @@ export const IFrameHelper = {
+       onBubbleClick(bubbleState);
+     },
+ 
+-    popoutChatWindow: ({ baseUrl, websiteToken, locale }) => {
++    // The popout target comes from local configuration, never from the
++    // message, so the conversation cookie only ever travels to the widget host.
++    popoutChatWindow: ({ locale }) => {
++      const { baseUrl, websiteToken } = window.$chatwoot;
+       const cwCookie = Cookies.get('cw_conversation');
+       window.$chatwoot.toggle('close');
+       popoutChatWindow(baseUrl, websiteToken, locale, cwCookie);
+diff --git a/app/javascript/sdk/specs/IFrameHelperMessageGuard.spec.js b/app/javascript/sdk/specs/IFrameHelperMessageGuard.spec.js
+new file mode 100644
+index 0000000..45cad28
+--- /dev/null
++++ b/app/javascript/sdk/specs/IFrameHelperMessageGuard.spec.js
+@@ -0,0 +1,87 @@
++import { IFrameHelper } from '../IFrameHelper';
++import { popoutChatWindow } from '../../widget/helpers/popoutHelper';
++
++vi.mock('../../widget/helpers/popoutHelper', () => ({
++  popoutChatWindow: vi.fn(),
++}));
++
++const WIDGET_ORIGIN = 'https://chat.example.com';
++const ATTACKER_ORIGIN = 'https://attacker.example';
++
++const popoutMessage = extra =>
++  `chatwoot-widget:${JSON.stringify({
++    event: 'popoutChatWindow',
++    baseUrl: ATTACKER_ORIGIN,
++    websiteToken: 'attacker-token',
++    locale: 'en',
++    ...extra,
++  })}`;
++
++describe('IFrameHelper message guard', () => {
++  let frame;
++
++  const deliver = ({ origin, source, data = popoutMessage() }) =>
++    window.onmessage({ origin, source, data });
++
++  beforeEach(() => {
++    window.$chatwoot = {
++      baseUrl: WIDGET_ORIGIN,
++      websiteToken: 'site-token',
++      toggle: vi.fn(),
++    };
++    frame = document.createElement('iframe');
++    frame.id = 'chatwoot_live_chat_widget';
++    document.body.appendChild(frame);
++    IFrameHelper.initPostMessageCommunication();
++    popoutChatWindow.mockClear();
++  });
++
++  afterEach(() => {
++    frame.remove();
++  });
++
++  it('ignores a message from a foreign origin, even from the widget frame', () => {
++    deliver({ origin: ATTACKER_ORIGIN, source: frame.contentWindow });
++    expect(popoutChatWindow).not.toHaveBeenCalled();
++  });
++
++  it('ignores a message with the widget origin from any other window', () => {
++    deliver({ origin: WIDGET_ORIGIN, source: window });
++    expect(popoutChatWindow).not.toHaveBeenCalled();
++  });
++
++  it('ignores messages when the widget frame is absent', () => {
++    frame.remove();
++    deliver({ origin: WIDGET_ORIGIN, source: null });
++    expect(popoutChatWindow).not.toHaveBeenCalled();
++  });
++
++  it('opens the popout on the configured host, never the host in the message', () => {
++    deliver({ origin: WIDGET_ORIGIN, source: frame.contentWindow });
++    expect(popoutChatWindow).toHaveBeenCalledWith(
++      WIDGET_ORIGIN,
++      'site-token',
++      'en',
++      undefined
++    );
++  });
++
++  it('resolves a protocol-relative base URL against the page', () => {
++    window.$chatwoot.baseUrl = '//chat.example.com';
++    const pageScheme = window.location.protocol;
++    deliver({
++      origin: `${pageScheme}//chat.example.com`,
++      source: frame.contentWindow,
++    });
++    expect(popoutChatWindow).toHaveBeenCalledTimes(1);
++  });
++
++  it('addresses outgoing messages to the widget origin only', () => {
++    const postMessage = vi.spyOn(frame.contentWindow, 'postMessage');
++    IFrameHelper.sendMessage('set-user', { identifier: 'visitor' });
++    expect(postMessage).toHaveBeenCalledWith(
++      expect.stringMatching(/^chatwoot-widget:/),
++      WIDGET_ORIGIN
++    );
++  });
++});

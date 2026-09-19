@@ -1,0 +1,52 @@
+# Throwaway stack for rehearsing an upgrade against a copy of the production
+# database. It never sends mail, never runs background jobs, and is never public.
+#
+#   STAGING_IMAGE=chatwoot/chatwoot:vX.Y.Z-ce@sha256:... \
+#     docker compose -p chatwoot-staging -f compose.staging.yaml up -d --wait rails
+#
+# Three properties make it safe to point at real data, and all three are
+# structural rather than configured. See upgrades.md, "a throwaway stack that
+# cannot reach anyone".
+#
+#   1. No Sidekiq service exists, so no scheduled job runs.
+#   2. Its .env.staging sends mail to a port where nothing listens, so a send
+#      fails loudly instead of reaching a real contact.
+#   3. Its port is bound to loopback, on a port production does not use.
+#
+# Tear the whole thing down when you are finished, including the volume:
+#   docker compose -p chatwoot-staging -f compose.staging.yaml down -v
+
+services:
+  rails:
+    image: ${STAGING_IMAGE:?set STAGING_IMAGE to the release you are rehearsing}
+    env_file: .env.staging
+    environment:
+      NODE_ENV: production
+      RAILS_ENV: production
+      INSTALLATION_ENV: docker
+    entrypoint: docker/entrypoints/rails.sh
+    command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
+    # Loopback, and a different port from production. Reach it over the same
+    # SSH tunnel you use for the admin console.
+    ports:
+      - '127.0.0.1:3001:3000'
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:3000/api || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  redis:
+    image: redis:7.4.11-alpine
+    env_file: .env.staging
+    # No volume: this Redis is discarded with the rehearsal.
+    command: ['sh', '-c', 'exec redis-server --requirepass "$$REDIS_PASSWORD"']
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
+      interval: 5s
+      timeout: 3s
+      retries: 10

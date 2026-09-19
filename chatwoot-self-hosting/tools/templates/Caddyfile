@@ -1,0 +1,56 @@
+# Topology A: an edge proxy terminates TLS for visitors and reaches this host
+# as its origin. Serve the origin on both 80 and 443.
+{
+	admin off
+	# Both listeners serve the app. A redirect from 80 to 443 would loop on an
+	# edge configured to reach the origin over HTTP, which some do by design.
+	auto_https disable_redirects
+}
+
+# The routes, shared by both listeners.
+(app) {
+	# Admin, monitoring and first-run onboarding are never public. Each route is a
+	# handle block because handle blocks run before bare respond directives.
+	@private path /super_admin /super_admin/* /monitoring /monitoring/* /installation /installation/*
+	handle @private {
+		respond 404
+	}
+
+	# The patched widget SDK replaces the copy inside the image. Cross-origin
+	# reads are allowed so embedding pages can pin it with Subresource Integrity.
+	handle /packs/js/sdk.js {
+		root * /srv/sdk
+		rewrite * /sdk.js
+		header Access-Control-Allow-Origin "*"
+		header Cache-Control "public, max-age=300"
+		encode zstd gzip
+		file_server
+	}
+
+	handle {
+		reverse_proxy rails:3000 {
+			# Rate limits key on the client address. Read it from the header your
+			# edge sets and a client cannot forge, and name that header here.
+			# Using a header any client can send lets one client wear many
+			# addresses. See providers.md, "the client address".
+			header_up X-Forwarded-For {http.request.header.CF-Connecting-IP}
+			header_up X-Forwarded-Proto https
+		}
+	}
+}
+
+# An edge reaches the origin over HTTPS or over HTTP depending on how its TLS
+# mode is set. Serving both leaves that setting alone, which matters when other
+# sites share the same zone.
+#
+# The certificate below comes from Caddy's own authority. An edge that verifies
+# the origin certificate rejects it, and wants a certificate from the edge
+# provider's origin CA here instead.
+https://{$DOMAIN} {
+	tls internal
+	import app
+}
+
+:80 {
+	import app
+}

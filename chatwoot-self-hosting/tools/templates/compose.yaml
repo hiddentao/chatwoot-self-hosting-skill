@@ -1,0 +1,75 @@
+# Chatwoot CE, topology A: Postgres and file storage are managed services, so
+# neither runs here. An edge proxy in front terminates TLS for visitors and
+# reaches this host as its origin.
+#
+# Pin the image by digest. Read rule 1 before changing this line.
+
+x-chatwoot: &chatwoot
+  image: chatwoot/chatwoot:v4.17.1-ce@sha256:351465db8f96c591686b4667a63836f048aa1d7c86c6ea97d262d5f37c795030
+  env_file: .env
+  environment:
+    NODE_ENV: production
+    RAILS_ENV: production
+    INSTALLATION_ENV: docker
+  restart: unless-stopped
+
+services:
+  rails:
+    <<: *chatwoot
+    entrypoint: docker/entrypoints/rails.sh
+    command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
+    # Loopback only: the operator reaches admin paths through an SSH tunnel.
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:3000/api || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+
+  sidekiq:
+    <<: *chatwoot
+    command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7.4.11-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set in .env}
+    command: ['sh', '-c', 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    # The hostname the edge asks for, so Caddy can answer TLS on it.
+    environment:
+      DOMAIN: ${DOMAIN:?set in .env}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # A directory mount, so a replaced sdk.js is served without a restart.
+      - ./sdk:/srv/sdk:ro
+      - caddy_data:/data
+    depends_on:
+      rails:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  caddy_data:

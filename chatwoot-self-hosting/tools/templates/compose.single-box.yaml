@@ -1,0 +1,107 @@
+# Chatwoot CE, topology B: one host runs everything, including Postgres and
+# file storage on local disk. Caddy answers public TLS directly.
+#
+# NOT VERIFIED. Topology A is the one that was built and measured. This file
+# states the requirements in runnable form; test it before you rely on it.
+#
+# What you take on by running Postgres here: backups, point-in-time recovery,
+# the disk, and the upgrade. Rehearsing an upgrade needs a copy of the volume
+# instead of a managed fork. See upgrades.md, "rehearsing without a fork".
+
+x-chatwoot: &chatwoot
+  image: chatwoot/chatwoot:v4.17.1-ce@sha256:351465db8f96c591686b4667a63836f048aa1d7c86c6ea97d262d5f37c795030
+  env_file: .env
+  environment:
+    NODE_ENV: production
+    RAILS_ENV: production
+    INSTALLATION_ENV: docker
+  # Attachments live on the host. Rails and Sidekiq both write here, so both
+  # mount it. With ACTIVE_STORAGE_SERVICE=local this is the only state a
+  # rebuild cannot recreate from the database.
+  volumes:
+    - storage_data:/app/storage
+  restart: unless-stopped
+
+services:
+  rails:
+    <<: *chatwoot
+    entrypoint: docker/entrypoints/rails.sh
+    command: ['bundle', 'exec', 'rails', 's', '-p', '3000', '-b', '0.0.0.0']
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O /dev/null http://127.0.0.1:3000/api || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+
+  sidekiq:
+    <<: *chatwoot
+    command: ['bundle', 'exec', 'sidekiq', '-C', 'config/sidekiq.yml']
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    # pgvector's image carries the vector extension. The stock postgres image
+    # does not, and Chatwoot's schema needs it.
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE:?set in .env}
+      POSTGRES_USER: ${POSTGRES_USERNAME:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      # Runs once, on an empty data directory, as the superuser.
+      - ./db-init.sql:/docker-entrypoint-initdb.d/10-chatwoot.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4.11-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set in .env}
+    command: ['sh', '-c', 'exec redis-server --requirepass "$$REDIS_PASSWORD" --appendonly yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.11.4-alpine
+    environment:
+      DOMAIN: ${DOMAIN:?set in .env}
+      TLS_EMAIL: ${TLS_EMAIL:?set in .env}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile.origin-tls:/etc/caddy/Caddyfile:ro
+      - ./sdk:/srv/sdk:ro
+      - caddy_data:/data
+    depends_on:
+      rails:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pg_data:
+  redis_data:
+  caddy_data:
+  storage_data:
