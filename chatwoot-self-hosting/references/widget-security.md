@@ -32,6 +32,21 @@ A `popoutChatWindow` handler destructuring `baseUrl` from its argument, with no
 `e.origin` or `e.source` test anywhere in the file, means the release is
 vulnerable whatever the advisory's version string says.
 
+You can settle it on the artefact rather than the source, which is better
+evidence because the artefact is what your visitors run. Extract `sdk.js` from
+the image your digest pins and count the two properties the guard would add:
+
+```
+docker create --platform linux/amd64 <your pinned image>   # prints a container id
+docker cp <id>:/app/public/packs/js/sdk.js ./image.sdk.js
+grep -coE '\.origin|\.source' ./image.sdk.js
+```
+
+At v4.17.1 that count is zero, measured on 2026-09-19. The minified bundle
+carries the wildcard target, the prefix-only handler and the popout host taken
+from the message, exactly as the source does. A patched build of the same
+release counts three.
+
 The recorded severity is medium, with a CVSS vector of
 `AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N`. Both halves of that are worth arguing
 with on your own installation: `C:L` for a conversation session handed to
@@ -114,8 +129,10 @@ page at it, and run a stock server image. Rule 5 in
 a directory on disk and sends everything else to Rails.
 
 Maintenance is close to zero because the code barely moves.
-`initPostMessageCommunication` was unchanged from 2020-04-03 to 4.17.1, and the
-popout handler from 2022-03-28. The file took seven commits in the two years to
+`initPostMessageCommunication` reads the same at 4.17.1 as it did on 2020-04-03,
+though not continuously: the reverted fix changed that exact function and its
+revert changed it back six days later. The popout handler is unchanged from
+2022-03-28. The file took seven commits in the two years to
 September 2026, and two of those were the origin-validation fix and its revert,
 which cancel each other out.
 
@@ -246,9 +263,17 @@ beside the patch:
 5b1eb8190acffdb5761e4210947478b1b2a6600507e3a117a657cc97d9b592aa v4.17.1
 ```
 
-If your extraction of the same release gives a different hash, find out why
-before going further. The build runs inside a pinned Node image so that your own
-machine's toolchain is not part of the answer.
+That value was measured: a clean build of v4.17.1 in the pinned Node image
+reproduces the shipped `sdk.js` byte for byte, all three artefacts, and hashes
+to it. If your extraction of the same release gives a different hash, find out
+why before going further. The build runs inside a pinned Node image so that your
+own machine's toolchain is not part of the answer.
+
+Compare it by hand on your first run. The script's own drift check reads
+`upstream.sha256` from the output directory you give it, not from the copy
+shipped here, so on a first build there is nothing there to compare against and
+it prints nothing. From the second release onwards it compares your previous
+build's record, which is the comparison that matters.
 
 If the patch stops applying to a new release, the script also stops. Read the
 upstream file, rebase the patch onto it, and run the script again. That is the
@@ -378,8 +403,8 @@ moves, and record that you ran it beside the hash.
 #### The compressed variant trap
 
 This applies to anyone who builds a custom image rather than serving the file
-from a proxy. It costs an evening to find, and it is one more argument for the
-proxy route.
+from a proxy. The symptom points at the proxy rather than at the image, which
+is one more argument for the proxy route.
 
 The image ships `sdk.js.br` and `sdk.js.gz` alongside `sdk.js`. Rails 7.2.3.1
 serves static files with `precompressed: %i[br gzip]` by default, and it checks
@@ -409,13 +434,15 @@ respond. The advisory names the file
 the `link` argument results in cross-site scripting, reachable remotely. That
 much is first hand, read from the advisory on 2026-09-19.
 
-What the advisory does not spell out, and what was pieced together from a
-write-up that returned 403 when it was read for this skill, is the exact path:
-`IframeLoader.vue` binding `:src` to a URL that `ArticleViewer.vue` feeds from
-the article route's query parameter, so a value in the URL reaches an iframe
-source with no scheme check in between. The file and the parameter are
-confirmed; the precise chain between them is not. Read those two components on
-your own release before acting on the detail.
+The chain is two lines, both read at 4.17.1. `ArticleViewer.vue:14` renders
+`<IframeLoader :url="$route.query.link" />`, and `IframeLoader.vue:62` binds
+`:src="url"`. So a value in the article route's query parameter reaches an
+iframe source with no scheme check in between.
+
+One correction to the advisory while you are here: it labels the component
+"Admin Interface". The code is the widget's article viewer, which anonymous
+visitors reach, not an administrative page. A reader who trusts the label will
+mis-scope the risk.
 
 The same caution about version strings applies here. This advisory also says
 "up to 4.7.0" and names no fixed version, so it is not evidence that a later

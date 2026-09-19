@@ -159,7 +159,9 @@ what it negotiated.
 
 `RAILS_MAX_THREADS` sets threads per Rails process, and `SIDEKIQ_CONCURRENCY`
 sets jobs in flight per Sidekiq process. Each is also that process's pool size.
-Five each is the shipped shape and is enough for a single-operator
+Upstream ships five threads and ten Sidekiq jobs, which is where the roughly
+fifteen connections above comes from. The template here sets five each, which is
+enough for a single-operator
 installation. Raise them together with the cluster's connection limit in view,
 because Sidekiq holds a connection for the length of a job.
 
@@ -411,7 +413,7 @@ an outage you schedule. In topology A the host holds nothing a rebuild would
 lose, so a stable address is the only thing standing between you and a cheap
 rebuild.
 
-Two details about these addresses cost an hour each if you meet them cold.
+Two details about these addresses are easier to know than to discover.
 They are usually allocated within one region and can only attach to a machine
 in the same one, so allocate it where the machine will live rather than where
 you happen to be looking. And a machine holding one answers on two public
@@ -456,8 +458,8 @@ an operator locked out of their own installation and repairing it in a hurry.
 Two consequences either way. Make the allowed source a setting rather than
 something a script infers from whoever is running it, or a repeat run will
 silently narrow your access to the address you happened to have that day. And
-keep a one-command way to repoint the rule, because you will want it at the
-moment you are least able to think.
+keep a one-command way to repoint the rule. You will be running it from a
+machine that cannot currently reach the host.
 
 #### Topology A managed services
 

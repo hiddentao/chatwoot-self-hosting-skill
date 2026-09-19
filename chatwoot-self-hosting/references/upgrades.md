@@ -64,9 +64,9 @@ will disagree exactly once, during an upgrade, which is the worst moment for it.
 An upgrade is not a pull. Budget it as a scheduled piece of work, at a quiet
 hour, with a way back.
 
-Migrations are the bulk of it. Seventy-five were added during 2026, counted in
-September of that year, and none of them runs on its own. You run
-`db:chatwoot_prepare`, you wait, and until it finishes the application is
+Migrations are the bulk of it. Seventy-four were added during 2026, counted at
+the 4.17.1 tag in September of that year, and none of them runs on its own. You
+run `db:chatwoot_prepare`, you wait, and until it finishes the application is
 serving an old schema or nothing.
 
 There is no documented rollback. Migrations are one way, and a restore of the

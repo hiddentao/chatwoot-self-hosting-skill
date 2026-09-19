@@ -69,7 +69,7 @@ There is a per-inbox column `inboxes.email_address`. Two methods in
 `app/mailers/conversation_reply_mailer.rb` read it, `reply_email` and
 `inbox_from_email_address`, and the second falls back to
 `@account.support_email`. Anyone reading the schema finds the column within a
-minute, and it looks like the answer. It is inert, for four reasons.
+minute, and it looks like the answer. It is unreachable, for four reasons.
 
 1. Nothing but the Rails console can write it. `inbox_attributes` in
    `app/controllers/api/v1/accounts/inboxes_controller.rb`, lines 195 to 202,
@@ -82,8 +82,16 @@ minute, and it looks like the answer. It is inert, for four reasons.
    controller, so the column is unreachable from the UI and from the API.
 2. Nothing in `app/`, `lib/`, `enterprise/` or `db/migrate/` ever writes it
    either.
-3. It is inert unless the account's `inbound_emails` flag is off, and that flag
-   defaults on.
+3. It is read, which is the part that misleads. Whether
+   `inbox_from_email_address` is reached at all depends on
+   `should_use_conversation_email_address?`, which is
+   `@inbox.inbox_type == 'Email' || inbound_email_enabled?`, and the second half
+   needs both the `inbound_emails` feature and `@account.inbound_email_domain`.
+   That domain falls back through `accounts.domain`, null by default, to
+   `MAILER_INBOUND_EMAIL_DOMAIN`, which upstream ships blank and this skill does
+   not set at all. So on a send-only installation, which is the shape described
+   here, the false branch runs and the column is read first. It is live. What
+   you cannot do is write it.
 4. Upstream's replacement keeps the same behaviour. `Email::FromBuilder`, at
    `app/builders/email/from_builder.rb`, sits behind the
    `reply_mailer_migration` feature flag, which is per account and ships
@@ -94,13 +102,17 @@ def build
   return sender_name(account_support_email) unless inbox.email?
 ```
 
-The first reason settles it today and the fourth settles it for later. A column
-no request can write is not an unfinished feature waiting for a UI, and the
-replacement already written for this code path returns the account support
-email for a widget inbox before any per-inbox logic runs. The limit is not an
-artefact of old code waiting to be modernised. It survives the modernisation.
+Reasons one and two settle it today: the only way to set the column is a console
+write, repeated by hand after anything that rebuilds the row. Reason four
+settles it for later, because the replacement already written for this code path
+returns the account support email for a widget inbox before any per-inbox logic
+runs, so the limit survives the migration it appears to be waiting for.
 
-Do not build on it.
+Reason three is the one to hold on to, because it cuts both ways. The column is
+read on a send-only installation, so a console write does take effect, and an
+installation that later gains a reply domain stops reading it with no other
+change and no warning. Build per-brand identity on an email-channel inbox
+instead.
 
 #### Email-channel inboxes have their own address
 
@@ -134,7 +146,7 @@ branch, and its replies carry the account address until it is verified. Someone
 who configures an email inbox for per-brand identity and gets the account
 address back is usually standing in that branch.
 
-One UI detail costs an afternoon if you do not know it. The SMTP panel stays
+One UI detail is worth knowing first. The SMTP panel stays
 hidden until IMAP (the protocol that reads mail out of a mailbox) is enabled
 (`ConfigurationPage.vue:393` renders `SmtpSettings` only when
 `inbox.imap_enabled`). Configure IMAP first, and the SMTP fields appear. An

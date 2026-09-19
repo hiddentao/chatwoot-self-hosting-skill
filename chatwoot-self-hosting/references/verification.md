@@ -120,7 +120,7 @@ model, and three encode choices this skill made about the shape of the
 installation rather than security facts.
 [hardening](hardening.md#the-single-operator-model) sorts them and says what a
 team changes. Whatever you change, edit the assertion to match reality rather
-than deleting it, because an assertion nobody makes is a question nobody asks.
+than deleting it: a deleted assertion stops reporting and stops failing.
 
 The two per-inbox assertions iterate over every widget inbox, so a new inbox
 created without allowed domains fails the audit the next time it runs. That is
@@ -232,12 +232,6 @@ message is a hash nobody can diff next release.
 Everything else in this skill was read in the source at 4.17.1 or measured
 against a running installation. These were not. Treat them as open questions
 rather than instructions, and check any one of them before you build on it.
-
-The exact code path of the second CVE. The advisory for CVE-2025-12246 was read
-directly and names the file and the parameter. The chain between them, from the
-article route's query parameter to the iframe source, came from a write-up that
-returned 403 and had no reachable archive copy. See
-[widget-security](widget-security.md#the-second-cve).
 
 Topology B. The one-box shape was written from the requirements rather than from
 a working installation. Nobody stood it up, so the templates for it are

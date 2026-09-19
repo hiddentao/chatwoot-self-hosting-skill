@@ -173,6 +173,9 @@ through its own authenticated routes, so the bucket never needs to be public.
 Probe the key before you write it into the environment:
 
 ```
+# The CLI refuses to run without a region even where the store ignores it.
+export AWS_DEFAULT_REGION=us-east-1
+echo probe > /tmp/probe
 B='--bucket <bucket> --key probe --endpoint-url <endpoint>'
 aws s3api put-object    $B --body /tmp/probe
 aws s3api get-object    $B /dev/null
@@ -217,8 +220,13 @@ the three encryption keys itself once the image is pulled, printing them in YAML
 form for you to copy across:
 
 ```
-docker compose run --rm rails bundle exec rails db:encryption:init
+docker compose run --rm --entrypoint "" rails bundle exec rails db:encryption:init
 ```
+
+`--entrypoint ""` matters here. The image's entrypoint waits for Postgres in an
+unbounded loop, and at this point in the install `POSTGRES_HOST` is still a
+placeholder, so without it the command hangs with no output. Generating keys
+needs no database.
 
 Either route is fine; pick one. Then the values that are not generated:
 

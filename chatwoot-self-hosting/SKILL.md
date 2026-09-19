@@ -39,14 +39,14 @@ references the task needs.
 
 | Reference | Open it when you are | Lines |
 | --- | --- | --- |
-| [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 597 |
-| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 576 |
-| [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 463 |
+| [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 599 |
+| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 584 |
+| [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 490 |
 | [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 530 |
-| [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 294 |
+| [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 306 |
 | [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 481 |
 | [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 440 |
-| [verification](references/verification.md) | about to claim the installation is safe | 280 |
+| [verification](references/verification.md) | about to claim the installation is safe | 274 |
 
 `tools/` beside them holds what is worth having exactly rather than retyped: the
 SDK patch and its build script, the Rails console scripts, the compose and proxy
@@ -106,8 +106,8 @@ identifier: contact merging silently drops the attribute.
 **8. Decide the email compromise before you design around it.**
 A widget inbox has no From address of its own. Transcript mail comes from one
 account-wide address, and operator mail from one global address. The per-inbox
-column that looks like the answer is unreachable and inert. Receiving mail is a
-separate provider question from sending it.
+column that looks like the answer can be read but not written. Receiving mail
+is a separate provider question from sending it.
 
 **9. Assign with a rule, not with round robin.**
 Built-in auto assignment draws only from agents the presence tracker reports as

@@ -108,6 +108,28 @@ for (const [file, text] of files) {
   });
 }
 
+// --- the audit's assertion count is what the prose says it is ---------------
+// Three files state this number and all three drift independently, which has
+// happened twice. The script is the source of truth; the prose follows it.
+{
+  const NUMBER = ["zero", "one", "two", "three", "four", "five", "six", "seven",
+    "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen"];
+  const audit = readFileSync(`${SKILL_DIR}/tools/rails/audit.rb`, "utf8");
+  // Each assertion is one "'name' =>" entry in the checks hash.
+  const count = [...audit.matchAll(/^\s*'[^']+'\s*=>/gm)].length;
+  const word = NUMBER[count];
+  for (const f of ["references/verification.md", "references/hardening.md"]) {
+    const text = readFileSync(`${SKILL_DIR}/${f}`, "utf8");
+    const claims = [...text.matchAll(/\b([a-z]+)\s+(?:of\s+the\s+audit's\s+)?assertions\b/gi)]
+      .map((m) => m[1].toLowerCase())
+      .filter((w) => NUMBER.includes(w));
+    for (const c of claims) {
+      check(c === word,
+        `${f}: says "${c} assertions", audit.rb has ${count} (${word})`);
+    }
+  }
+}
+
 // --- every variable a template needs is one env.template defines ------------
 // An absent variable is not an untested design, it is a broken template, and
 // the unfilled-placeholder grep cannot catch it because there is nothing there

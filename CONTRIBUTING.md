@@ -58,10 +58,13 @@ node tools/validate.mjs
 
 It checks the skill's frontmatter against the Agent Skills spec, that `SKILL.md`
 stays under 500 lines, that every reference exists and is reachable, that the
-links and anchors between files resolve, the ban on em and en dashes, that no
-value from the installation this skill was cut from has travelled with it, that
-the marketplace manifest matches the repository, and that there is exactly one
-`SKILL.md`. CI runs it on every pull request.
+links and anchors between files resolve, the ban on em and en dashes, that prose
+wraps at 80 columns, that the reference table's line counts are the real ones,
+that every variable a template refers to is one `env.template` defines, that the
+audit's assertion count matches what the prose claims, that no value from the
+installation this skill was cut from has travelled with it, that the marketplace
+manifest matches the repository, and that there is exactly one `SKILL.md`. CI
+runs it on every pull request.
 
 Two of those checks exist because the thing they check for shipped once, and
 both are worth keeping in mind when you edit:
@@ -102,6 +105,12 @@ and what you observed rather than removing it.
 Do not name a provider as a requirement. The requirements tables say what a
 component must supply, and a provider is an example of something that supplies
 it.
+
+One shipped file breaks that on purpose. `tools/templates/Caddyfile` sets the
+client address from Cloudflare's header, because the wrong value there produces
+no error at all: the rate limits simply stop meaning anything. A working default
+someone has to change beats a placeholder that fails silently. If you add
+another case like it, say so where it appears, as that file does.
 
 ## Security writing
 
