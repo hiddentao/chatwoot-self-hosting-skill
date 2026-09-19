@@ -339,7 +339,7 @@ next person at that browser opens the previous person's conversation.
 
 ##### What mandatory HMAC forces
 
-The setting is not a nicety, and the gate shows why.
+The gate shows why:
 `should_verify_hmac?`, in the same controller:
 
 ```
