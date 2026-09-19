@@ -40,7 +40,7 @@ references the task needs.
 | Reference | Open it when you are | Lines |
 | --- | --- | --- |
 | [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 581 |
-| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 512 |
+| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 546 |
 | [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 463 |
 | [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 530 |
 | [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 294 |

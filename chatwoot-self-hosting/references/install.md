@@ -30,6 +30,29 @@ installation is both public and open:
 - [ ] The proxy returns 404 for the admin, monitoring and installation paths.
 - [ ] The `sdk.js` being served is your patched build.
 
+#### The address, and the network the host sits on
+
+Two decisions are made when the host is created and are expensive to change
+afterwards.
+
+Claim a stable address first, of the kind that detaches from one machine and
+attaches to the next, and point nothing at it yet. DNS comes at the end. The
+address exists now so that everything downstream, the firewall rule, the
+certificate and eventually the record, names something that survives a rebuild.
+Allocate it in the region the host will live in: these are usually regional and
+will not attach across regions. See
+[providers](providers.md#an-address-that-outlives-the-machine).
+
+Put the host on the same private network as the managed database, at creation.
+Most providers will not move a running machine between networks, so getting
+this wrong means rebuilding the host or sending database traffic over the public
+endpoint. The private host is also the only place `db-init.sql` can run from,
+which is the next step.
+
+A host holding one of these addresses answers on two: its own and the attached
+one. Use the attached one everywhere, so SSH, your file copies and DNS all name
+the same machine.
+
 #### Preparing the host
 
 ##### Docker and swap
@@ -226,7 +249,18 @@ reissued at its provider:
 
 #### Booting privately, and the migration
 
-Redis first, because the prepare command needs it:
+Pull the images before anything depends on them:
+
+```
+docker compose pull
+```
+
+As its own step, a wrong digest, a typo in the image line or a registry that
+will not serve you is a failure with nothing else in flight. Left until the
+first `up`, the same failure arrives in the middle of a boot sequence, and left
+until the migration it arrives in the middle of that.
+
+Then Redis, because the prepare command needs it:
 
 ```
 docker compose up -d redis
