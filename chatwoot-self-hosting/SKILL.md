@@ -39,13 +39,13 @@ references the task needs.
 
 | Reference | Open it when you are | Lines |
 | --- | --- | --- |
-| [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 581 |
-| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 546 |
+| [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 597 |
+| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 576 |
 | [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 463 |
 | [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 530 |
 | [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 294 |
-| [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 476 |
-| [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 420 |
+| [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 481 |
+| [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 440 |
 | [verification](references/verification.md) | about to claim the installation is safe | 280 |
 
 `tools/` beside them holds what is worth having exactly rather than retyped: the
@@ -172,7 +172,7 @@ actually do. Check those before you carry a decision from one stack to another.
 | Mail | receive, if you want replies to become messages | transcripts that no one can reply to |
 | Edge | set a client address header the client cannot set itself | rate limits a client picks its own bucket for |
 | Edge | agree with the origin on who terminates TLS | a redirect loop, or a certificate the edge rejects |
-| Host | run Docker, and have swap | an out-of-memory kill during asset work |
+| Host | run Docker, and have swap, with room for a migration's memory peak | an out-of-memory kill during asset work or a migration |
 | Host | keep its address across a rebuild | a DNS change and a wait every time you rebuild |
 
 ### Questions to ask of any stack

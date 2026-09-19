@@ -106,15 +106,24 @@ Then, in order:
 2. Copy the data. On a provider that can fork a cluster to a point in time, fork
    production as it was a couple of minutes ago. Without one, see
    [rehearsing without a fork](#rehearsing-without-a-fork).
-3. Bring up a second stack against the copy, under its own compose project name,
+3. Add the host to the copy's allowed sources. The copy is a new cluster with a
+   new hostname and its own list, and that list starts empty, so this is the
+   step whose absence looks exactly like a wrong port. The empty-list trap
+   applies here too: a copy with no rules at all already accepts everything, so
+   adding a first rule is a change rather than an addition. The
+   [restore section](#a-restored-database-is-a-new-database) has the same trap
+   under worse conditions.
+4. Bring up a second stack against the copy, under its own compose project name,
    with the new image.
-4. Run the migrations there, with the raised statement timeout.
-5. Assert, then look at it yourself.
-6. Confirm, then upgrade production: pin the new image, pull, stop Rails and
-   Sidekiq, run the migrations with the raised timeout, start everything again,
-   verify from outside. Print a restore point first, a UTC timestamp taken
-   before the migrations start, so you know what to ask the provider for.
-7. Delete the copy and the second stack, on the way out and on failure alike.
+5. Run the migrations there, with the raised statement timeout.
+6. Assert, then look at it yourself.
+7. Confirm, then upgrade production: pin the new image, copy the changed files
+   across without touching the host's `.env`, pull, stop Rails and Sidekiq, run
+   the migrations with the raised timeout, start everything again, verify from
+   outside. Print a restore point first, a UTC timestamp taken before the
+   migrations start, so you know what to ask the provider for.
+8. Delete the copy, the second stack and `.env.staging`, on the way out and on
+   failure alike.
 
 ##### A throwaway stack that cannot reach anyone
 
@@ -157,6 +166,17 @@ that cannot connect fails loudly in the log, where a flag saying do not send
 fails silently and is one careless edit from sending.
 `tools/templates/compose.staging.yaml` is that file, and it runs under its own
 compose project name so it can never recreate a production container.
+
+Delete `.env.staging` when you are done, every time, including after a failed
+rehearsal. It is a verbatim copy of production's secrets, `SECRET_KEY_BASE`, the
+three encryption keys, the database password and the mail credential, sitting
+next to the real one under a name nothing else reads. Tearing down the
+containers does not remove it:
+
+```
+docker compose -p chatwoot-staging -f compose.staging.yaml down -v
+rm -f .env.staging
+```
 
 ##### What to assert before believing it passed
 

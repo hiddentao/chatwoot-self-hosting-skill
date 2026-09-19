@@ -101,6 +101,33 @@ the firewall, is what lets the whole application run before any name points at
 the host. When SSH stops answering, your own address has usually moved:
 repoint that one rule before you suspect the host.
 
+#### Getting the files onto the host
+
+Everything from here runs from one directory on the host, and every command
+below assumes you are standing in it. Pick it once, `/opt/chatwoot` is a
+reasonable choice, and copy the compose file, the proxy configuration, the
+environment template, `db-init.sql` and the `sdk/` directory into it.
+
+One rule governs every copy after the first, and breaking it is the most
+expensive mistake available on this installation:
+
+```
+# Never copy over the host's .env. Exclude it explicitly, every time.
+rsync -az --delete --exclude .env --exclude .env.staging ./deploy/ host:/opt/chatwoot/
+```
+
+The host's `.env` holds `SECRET_KEY_BASE` and the three encryption keys, and
+those four cannot be regenerated: overwriting them costs every session and every
+stored second factor. You will copy this directory again, because pinning a new
+image and editing the proxy both mean another copy, so make the exclusion part
+of the command rather than something you remember. `--delete` without the
+excludes would remove the file outright.
+
+The patched `sdk.js` arrives the same way. It is built on a machine with Docker
+and a Node image, which is usually not the host, and the proxy serves it from a
+directory mount, so the built file has to be copied across before the route
+returns anything. See [the patched SDK](#the-patched-sdk).
+
 #### Preparing the database
 
 Create an application role and a database for it, then run the preparation
@@ -477,7 +504,10 @@ visitor's history onto a contact they control.
 #### Publishing DNS
 
 Go back to the five checks in [the private window](#the-private-window) and
-confirm all of them. Then create the record, pointing at the address that
+confirm all of them. Run the database audit here too, before the record exists,
+rather than waiting for the verification step below. On a fresh installation it
+passes on defaults, so it costs a minute and it is the last moment at which a
+failure is private. Then create the record, pointing at the address that
 survives a rebuild of the host.
 
 In topology A the origin serves both 80 and 443, so the edge's TLS mode can stay

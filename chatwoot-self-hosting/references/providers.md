@@ -363,6 +363,22 @@ If the log says `203.0.113.1`, the limits are decorative.
 
 #### The host
 
+##### How big
+
+The host runs Rails, Sidekiq, Redis and the proxy. In topology A the database
+and the object store are elsewhere, so it holds no data and its size is set by
+those four processes and by what a migration costs.
+
+Topology A ran on four shared vCPUs and eight gigabytes, with a two gigabyte
+swap file, and was not short of either. Treat that as the shape rather than the
+minimum: the peaks are asset work during a boot and a migration on a table with
+real rows, both short and both memory-hungry. A one or two gigabyte instance
+will serve traffic and then die during one of those, which arrives as a
+container killed with nothing useful in its log.
+
+In topology B the same box also runs Postgres, so size it for the database as
+well and give the data directory room to grow.
+
 ##### Docker, and why compose
 
 Compose is the only deployment path worth using. The alternatives rule

@@ -237,8 +237,13 @@ RATE_LIMIT_WIDGET_TRANSCRIPT=5
 ```
 
 The widget limits decide what an anonymous visitor can cost you, and they are
-separate from the global limit. Conversations and messages bound spam.
-Transcript bounds outbound mail sent on a stranger's instruction.
+separate from the global limit. Conversations and messages bound spam. Contacts
+bounds how many separate identities one address can create, which is what fills
+the contact list with nothing. Load bounds how often the widget itself can be
+fetched, which a scripted reload loop drives and which costs you nothing but
+still costs the origin. Transcript bounds outbound mail sent on a stranger's
+instruction, and is the lowest of the six because it is the only one that
+reaches somebody else's inbox.
 
 Every one of these numbers counts requests per client address, so they are worth
 precisely as much as your confidence in that address. A request that reaches the
