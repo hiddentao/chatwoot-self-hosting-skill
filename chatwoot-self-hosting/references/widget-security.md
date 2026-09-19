@@ -43,11 +43,11 @@ Every embedding page loads `/packs/js/sdk.js`, which is built from
 three places in it matter. The line numbers below were read in that file at that
 tag on 2026-09-19.
 
-`initPostMessageCommunication`, lines 100 to 106, installs a single
-`window.onmessage` handler on the embedding page. The handler applies two tests to each message: is
-`e.data` a string, and does it start with the prefix `chatwoot-widget:`. It then
-parses the remainder as JSON and calls the function named by the message's
-`event` field. Nothing on that path reads `e.origin`, and nothing reads
+`initPostMessageCommunication`, lines 100 to 113, installs a single
+`window.onmessage` handler on the embedding page. Its guard, lines 102 to 107,
+applies two tests to each message: is `e.data` a string, and does it start with
+the prefix `chatwoot-widget:`. Lines 108 to 111 then parse the remainder as JSON
+and call the function named by the message's `event` field. Nothing on that path reads `e.origin`, and nothing reads
 `e.source`. Any message carrying the prefix is handled as though the widget
 iframe had sent it.
 
@@ -115,8 +115,16 @@ a directory on disk and sends everything else to Rails.
 
 Maintenance is close to zero because the code barely moves.
 `initPostMessageCommunication` was unchanged from 2020-04-03 to 4.17.1, and the
-popout handler from 2022-03-28. The file took seven commits in two years, two of
+popout handler from 2022-03-28. The file took seven commits in the two years to
+September 2026, and two of those were the origin-validation fix and its revert,
 which cancel each other out.
+
+Close to zero is an average, not a promise. A commit reducing the bundle's size
+landed on 2026-08-24, three days before 4.17.1 was published, and the patch
+still applied because it did not touch the three places that matter. That is the
+normal case and it is also exactly why the drift check exists: the reason to
+compare hashes every release is that a release which moves the file usually
+moves a part you do not care about, right up until one does not.
 
 The three ways out, and what each costs. This file describes the first:
 
@@ -227,7 +235,7 @@ from the same tree is a file you cannot account for, and you would be serving it
 to every visitor with the SDK's full access to the page.
 
 So the script stops there. It does not write `sdk.js`, and it exits non-zero.
-The recorded baseline for v4.17.1 is in `tools/sdk/upstream.sha256`:
+The skill ships a starting baseline for v4.17.1 in `tools/sdk/upstream.sha256`, beside the patch:
 
 ```
 5b1eb8190acffdb5761e4210947478b1b2a6600507e3a117a657cc97d9b592aa v4.17.1
@@ -321,9 +329,11 @@ handler, and nothing happens.
 The only signal available is the hash of upstream's shipped file. Record it on
 every release and compare:
 
-- `tools/patch-sdk.sh` writes the extracted hash to `sdk/upstream.sha256` with
-  the tag beside it, and on the next run prints whether upstream changed the
-  file since.
+- `tools/patch-sdk.sh` writes the extracted hash to `upstream.sha256` in the
+  output directory you gave it, with the tag beside it, and on the next run
+  prints whether upstream changed the file since. Give it the same directory
+  every time, in your own deployment repository, or the comparison is against
+  whichever copy happens to be there.
 - When it did change, read the diff of `app/javascript/sdk/` between the two
   tags before you ship the new build. You are looking for new configuration
   keys, new events, and any change to the message handler or the popout path
@@ -338,8 +348,8 @@ next release.
 
 ##### Checking the patch is still complete
 
-The guard specification proves the four behaviours the patch asserts. It cannot
-prove there is no fifth sender, because it only exercises the senders it knows
+The guard specification proves the four changes the patch makes. It cannot
+prove there is no other sender, because it only exercises the senders it knows
 about. That matters on a rebase: upstream can add a new place that posts a
 `chatwoot-widget:` message from somewhere your single allowed origin does not
 cover, and every existing test still passes.

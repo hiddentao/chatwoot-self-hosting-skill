@@ -88,7 +88,17 @@ rehearsing against a copy of your own data rather than against a clean install.
 #### Rehearsing against a copy of the data
 
 The rehearsal runs the new release against a copy of your database, on a stack
-that cannot reach anyone. In order:
+that cannot reach anyone.
+
+Set the release you are rehearsing once, in the shell you will run all of this
+from. `tools/templates/compose.staging.yaml` reads it and refuses to start
+without it, so every command below assumes it:
+
+```
+export STAGING_IMAGE=chatwoot/chatwoot:v4.18.0-ce@sha256:<digest>
+```
+
+Then, in order:
 
 1. Build the patched widget SDK for the new release, and stop if its hash
    changed until every embedding page accepts both hashes. See
@@ -140,8 +150,11 @@ It is never public. Bind its port to loopback on a port production does not use,
 `127.0.0.1:3001`, and reach it over the same SSH tunnel you use for the admin
 console. The proxy knows nothing about it, so there is nothing to get wrong.
 
-All three properties are structural rather than configured, which is the point:
-a flag can be edited back, a missing service cannot be started by accident.
+Two of the three are structural, which is the point: a missing service cannot be
+started by accident, and a loopback port is not reachable from anywhere else.
+The third is configuration, but of a kind that fails the safe way. An address
+that cannot connect fails loudly in the log, where a flag saying do not send
+fails silently and is one careless edit from sending.
 `tools/templates/compose.staging.yaml` is that file, and it runs under its own
 compose project name so it can never recreate a production container.
 
@@ -269,7 +282,7 @@ The patched widget SDK is built against one release. A new release means a new
 build, and the build is part of the upgrade rather than a follow-up.
 
 ```
-tools/patch-sdk.sh v4.18.0 chatwoot/chatwoot:v4.18.0-ce@sha256:<digest>
+tools/patch-sdk.sh v4.18.0 chatwoot/chatwoot:v4.18.0-ce@sha256:<digest> ./sdk
 ```
 
 It does four things, in this order:

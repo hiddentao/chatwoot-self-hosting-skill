@@ -67,7 +67,7 @@ See [widget-security](widget-security.md#rolling-out-a-new-hash).
 | `GET /packs/js/sdk.js`, sha384 of the body | the same hash as your patched build | The proxy is serving the image's copy, or a build you did not make |
 | The same response's `Access-Control-Allow-Origin` | `*` | Integrity pinning fails closed and the widget never loads. See [widget-security](widget-security.md#rolling-out-a-new-hash) |
 | `GET /cable` with websocket upgrade headers | 101 | Realtime is broken, so new conversations arrive silently |
-| Per widget inbox: `GET /widget?website_token=...` | a `Content-Security-Policy` header whose `frame-ancestors` list is not `*` | That inbox can be embedded by any site. See [inboxes-and-identity](inboxes-and-identity.md#allowed-domains) |
+| Per widget inbox: `GET /widget?website_token=...` | a `Content-Security-Policy` header carrying a `frame-ancestors` list. A blank `allowed_domains` sends no such header at all, rather than a wildcard one | That inbox can be embedded by any site. See [inboxes-and-identity](inboxes-and-identity.md#allowed-domains) |
 | Per widget inbox: `PATCH` to the widget `set_user` endpoint with an unsigned identifier | 401 | A visitor can claim another visitor's identity |
 
 Two notes on the last two rows. The checks need the inbox's public website
@@ -115,10 +115,13 @@ are run, which is the same way.
 | Every widget inbox restricts framing | No inbox has blank allowed domains. Blank removes the framing restriction rather than defaulting closed |
 | Every widget inbox requires signed identities | No inbox accepts an unsigned identity, so no visitor can claim another |
 
-Twelve assertions. Two of them encode the single-operator model rather than a
-universal rule: exactly one user, and exactly one account membership. A team
-installation replaces those two counts with its own and keeps the other ten
-unchanged. Editing them to match reality is the correct move; deleting them is
+Twelve assertions. Two encode the single-operator model: exactly one user, and
+exactly one account membership. Those are the only two a team changes, and it
+changes them to its own roster rather than deleting them. Of the remaining ten,
+seven are security facts that hold whatever shape your installation is. Three
+are choices this skill made rather than invariants: no API-channel inbox, no
+help-centre portal, and unread counts on. Change one of those only when you have
+changed the decision behind it, and write down why. Editing them to match reality is the correct move; deleting them is
 not, because the count is what tells you an invitation was accepted.
 
 The two that look like headcount and are not: no platform apps, and a second
@@ -237,9 +240,11 @@ Everything else in this skill was read in the source at 4.17.1 or measured
 against a running installation. These were not. Treat them as open questions
 rather than instructions, and check any one of them before you build on it.
 
-The second CVE. The write-up documenting CVE-2025-12246 returned 403 when it was
-read, and no archive copy was reachable. Its mechanism, as described in
-[widget-security](widget-security.md#the-second-cve), is second hand.
+The exact code path of the second CVE. The advisory for CVE-2025-12246 was read
+directly and names the file and the parameter. The chain between them, from the
+article route's query parameter to the iframe source, came from a write-up that
+returned 403 and had no reachable archive copy. See
+[widget-security](widget-security.md#the-second-cve).
 
 Topology B. The one-box shape was written from the requirements rather than from
 a working installation. Nobody stood it up, so the templates for it are

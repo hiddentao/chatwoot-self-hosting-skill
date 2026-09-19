@@ -339,7 +339,11 @@ relaxing the check to a range: an assertion that passes for any count catches
 nothing, and the whole point of these lines is to notice an account you did not
 add.
 
-Two more look like headcount and are not, so leave them alone.
+Two more look like headcount and are not, so leave them alone. Three others are
+not security rules at all: no API-channel inbox, no help-centre portal and
+unread counts on are choices about the shape of this installation. Keep them
+asserted so a change is deliberate, and change the assertion when you change the
+decision.
 
 `PlatformApp.none?` stays at zero however many people you are. A team is a
 reason for more users, and never a reason for a token that creates confirmed

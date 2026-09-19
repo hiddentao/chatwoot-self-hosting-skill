@@ -25,7 +25,7 @@ Set the account address once, after onboarding:
 
 ```
 docker compose exec -T -e SUPPORT_EMAIL="Support <no-reply@mail.example.com>" \
-  rails bundle exec rails runner - < account-setup.rb
+  rails bundle exec rails runner - < tools/rails/account-setup.rb
 ```
 
 Where each kind of mail gets its From line:

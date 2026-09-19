@@ -100,7 +100,7 @@ docker compose exec -T \
   -e INBOX_NAME=Example -e WEBSITE_URL=https://example.com \
   -e ALLOWED_DOMAINS="https://example.com, https://app.example.com" \
   -e BUSINESS_NAME=Example \
-  rails bundle exec rails runner - < add-website.rb
+  rails bundle exec rails runner - < tools/rails/add-website.rb
 ```
 
 It refuses to run unless the account count is exactly one.

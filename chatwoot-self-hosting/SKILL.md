@@ -39,14 +39,14 @@ references the task needs.
 
 | Reference | Open it when you are | Lines |
 | --- | --- | --- |
-| [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 568 |
+| [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 576 |
 | [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 509 |
-| [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 450 |
+| [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 460 |
 | [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 538 |
 | [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 299 |
-| [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 473 |
-| [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 407 |
-| [verification](references/verification.md) | about to claim the installation is safe | 281 |
+| [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 477 |
+| [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 420 |
+| [verification](references/verification.md) | about to claim the installation is safe | 286 |
 
 `tools/` beside them holds what is worth having exactly rather than retyped: the
 SDK patch and its build script, the Rails console scripts, the compose and proxy
@@ -201,7 +201,7 @@ prints `NOT MEASURED` plus the manual method for whatever it cannot reach.
 7. **Which header carries the client address, and can a client send it?** Read
    the origin log for a request you sent with a forged header.
 8. **Does the address outlive the machine?** This decides whether a rebuild is a
-   five-minute operation or a DNS change.
+   ten-minute operation or a DNS change and a propagation wait.
 
 Each answer is a fact about your stack on the day you measured it. Providers
 change defaults, so measure again after any migration between them.
@@ -246,7 +246,9 @@ change, and note that invitations cannot be disabled by configuration at all.
 **What the widget is allowed to cost you.** A widget accepts anonymous visitors
 by definition, so spam and storage growth are the price of having one. The
 controls are allowed domains, the pre-chat form, the upload cap and the rate
-limits. Set them against your own tolerance.
+limits. Note that `tools/rails/add-website.rb` leaves the pre-chat form off,
+trading that control for identity continuity, so out of the box you have three
+of the four. Set them against your own tolerance.
 
 **Whether message previews may cross someone else's servers.** Mobile push goes
 through Chatwoot's relay unless you build and ship your own mobile app. For most

@@ -120,7 +120,7 @@ probe as a port problem until you have disproved it.
 
 #### Statement timeouts
 
-A provider default of a few seconds is enough to kill a migration and not
+A provider default in the low tens of seconds is enough to kill a migration and not
 enough to notice in normal use. The managed cluster topology A used defaults to
 14 seconds, and a single migration on a table with real rows in it runs longer
 than that. Upstream knows: its own Procfile runs the prepare step with
@@ -408,12 +408,15 @@ The shape is small:
 | --- | --- | --- |
 | in | SSH from your address, or from the range it moves within | the tunnel is your admin console |
 | in | 80 and 443 from your edge, or from anywhere | the edge has to reach the origin |
-| in | nothing else | Rails binds to loopback, so nothing else is listening |
+| in | nothing else | nothing else is published, so nothing else is reachable |
 | out | everything | the application reaches the database, the store and the mail provider |
 
-Bind Rails to `127.0.0.1:3000` in the compose file, not to `0.0.0.0`. The proxy
-reaches it over the compose network, and nothing on the public interface can.
-That binding is what lets you run the whole installation before DNS exists.
+Publish Rails on `127.0.0.1:3000` in the compose file's `ports`, never on
+`0.0.0.0`. Inside the container it still listens on `0.0.0.0`, which is what
+lets the proxy reach it over the compose network: a process bound to the
+container's own loopback would refuse the proxy's connection. The restriction
+that matters is on the published port, not on the bind address, and it is what
+lets you run the whole installation before DNS exists.
 
 The SSH row is the one worth deciding rather than copying. A single address is
 the tightest rule and it is the right one from a fixed office address or a
@@ -453,9 +456,15 @@ visitor -> edge (TLS) -> host: proxy :80/:443
 
 This is the shape that was built and measured. The stack topology A was
 verified on: a DigitalOcean droplet, that provider's managed Postgres and
-object storage, Cloudflare at the edge, and Resend for outbound mail. Nothing
-in this skill depends on those four; the requirements above are what to look
-for in any substitute.
+object storage, Cloudflare at the edge, and Resend for outbound mail. The
+requirements above are what to look for in any substitute.
+
+One shipped file still names one of them, and it is deliberate.
+`tools/templates/Caddyfile` sets the client address from `CF-Connecting-IP`,
+because a working default beats a placeholder for the one setting whose wrong
+value produces no error at all. Change it to your own edge's header before you
+trust any rate limit. Everything else provider-specific in this skill is a
+placeholder. See [the client address](#the-client-address).
 
 What you get is managed backups, point-in-time recovery, a database fork to
 rehearse upgrades against, and a host you can destroy and rebuild. What you pay
@@ -527,13 +536,12 @@ Check this list before choosing a component because you have used it before.
 | `cwctl` for upgrading a custom branch | ruled out by Chatwoot's own documentation | Chatwoot docs |
 | A managed database on a non-default port, left unconfigured | the entrypoint's readiness probe waits for ever with no useful error | [the port](#the-port) |
 | A provider `statement_timeout` in the low tens of seconds | a migration is killed partway | [upgrades](upgrades.md#the-statement-timeout) |
-| Cloudflare R2 as the object store, per issues 13299 and 11766 | uploads fail silently on a checksum; a 404 race on read | [object storage](#object-storage) |
+| An `s3_compatible` store never exercised through the application, per issues 13299 and 11766 | uploads fail silently on a checksum; a 404 race on read. Both issues name Cloudflare R2, and both have workarounds | [object storage](#object-storage) |
 | A send-only mail provider, alone | replies to transcripts are lost, silently | [email](email.md#receiving-is-a-second-provider) |
 | An edge header any client can set, used as the client address | every client picks its own rate-limit bucket | [the client address](#the-client-address) |
 | A redirect from 80 to 443 on the origin, behind an edge that speaks HTTP to it | redirect loop | [both ports](#why-the-origin-serves-both-ports) |
 | Skipping from a 3.x release to 4.2 or later on an installation with real users | the migration fails; a stop at v4.1 is mandatory, and upstream closed the report as not planned | issue 12088 |
 | SSO or SAML on a CE image | the SAML code is entirely under `enterprise/`, which the CE build deletes, and the dashboard ships a paywall component for it; password plus a second factor is the path | read at 4.17.1 |
-| The mobile app against a self-hosted installation with an unusual TLS or domain setup | one report of "Invalid URL" at connect, closed by a maintainer as a configuration problem on the reporter's side rather than reproduced | issue 13420, closed |
 
 One reminder rather than a combination: whether the dashboard survives a strict
 Content Security Policy in front of it is on

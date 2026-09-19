@@ -4,7 +4,11 @@
 # Usage: patch-sdk.sh <tag> <image-ref> [out-dir]
 #   tag        upstream git tag, e.g. v4.17.1
 #   image-ref  the image the server runs, e.g. chatwoot/chatwoot:v4.17.1-ce@sha256:...
-#   out-dir    where sdk.js and upstream.sha256 are written (default: ./sdk)
+#   out-dir    where sdk.js and upstream.sha256 are written, relative to where
+#              you run this (default: ./sdk). Make it a directory in your own
+#              deployment repository: sdk.js is what you sync to the server and
+#              mount into the proxy, and upstream.sha256 is what you commit so
+#              the next release has something to compare against.
 #
 # Steps:
 #   1. Extract the sdk.js the image ships and record its sha256 (drift detection).
@@ -33,7 +37,9 @@ for tool in docker git openssl; do command -v "$tool" >/dev/null || die "$tool i
 [[ $# -ge 2 ]] || die "usage: patch-sdk.sh <tag> <image-ref> [out-dir]"
 TAG="$1"
 IMAGE="$2"
-SDK_DIR="${3:-$ROOT/sdk}"
+# Output goes to the directory you run this from, not into the skill's own
+# tools/sdk, which holds the patch and must not collect build artefacts.
+SDK_DIR="${3:-$PWD/sdk}"
 PATCH="$ROOT/sdk/IFrameHelper.patch"
 [[ -f "$PATCH" ]] || die "patch not found at $PATCH"
 mkdir -p "$SDK_DIR"
