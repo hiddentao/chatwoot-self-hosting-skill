@@ -22,7 +22,7 @@ is green, and the problems are found by someone else.
 
 This skill came out of building one such installation properly and writing down
 everything that went wrong. Most of that turned out to have nothing to do with
-the hosting provider: it was Chatwoot behaviour that is not documented, does not
+the hosting provider. It was Chatwoot behaviour that is not documented, does not
 fail loudly, and costs an evening each time you meet it: a setting whose value
 `off` means on, a database port that makes the container wait for ever instead
 of reporting an error, a migration killed by a timeout nobody set, a widget any
@@ -172,7 +172,7 @@ patch, the console scripts, the templates and the probes.
 
 An agent reads `SKILL.md` every time it uses the skill, so the spec asks for it
 to stay under 500 lines and the validator enforces it. The references add about
-3,000 lines, and the agent reads each one only when a task needs it.
+3,500 lines, and the agent reads each one only when a task needs it.
 
 The widget patch is shipped as a patch, and the built script is not. You build
 it against the release you pinned, and the build script refuses to write

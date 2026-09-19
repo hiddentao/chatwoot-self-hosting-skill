@@ -11,9 +11,14 @@ took it, and measure again after moving any component.
 
 #### Postgres
 
-Chatwoot needs Postgres 14 or later. Upstream's own compose file ships 16. The
-version floor bites during the first schema load rather than at connection
-time, so a cluster that connects cleanly can still refuse to be installed into.
+Chatwoot's deployment documentation gives 14 as the minimum. Nothing in the
+source asserts it: the schema declares no server version, there is no check in
+`database.yml` and no migration tests for one, so treat 14 as a documented floor
+rather than an enforced one. What the source does show is what upstream actually
+runs, and every compose file and the CI service are on `pgvector/pgvector:pg16`.
+Target 16 unless you have a reason not to. A version problem surfaces during the
+first schema load rather than at connection time, so a cluster that connects
+cleanly can still refuse to be installed into.
 
 Permission is the usual obstacle, and connection count is rarely one: the
 application draws around 15 connections with the shipped pool settings, while

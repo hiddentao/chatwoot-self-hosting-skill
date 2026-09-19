@@ -193,9 +193,15 @@ implementation's `sanitizeURL` had no success path, so it always returned
 `about:blank`, and it compared `'https:'` against `'https'`. It broke the
 widget.
 
-Pull request 13240 has been open since January 2026. It is substantially right
-and it breaks on a protocol-relative `baseUrl`, which is the case the patch here
-covers explicitly.
+Pull request 13240 has been open since January 2026. It adds an origin guard to
+the message handler and a target origin to `sendMessage`, which is the right
+shape, and it has two gaps. It derives the expected origin with
+`new URL(baseUrl)` and no base, so a protocol-relative `baseUrl` throws, the
+fallback returns the embedding page's origin, and the guard then rejects the
+widget's own messages.
+That does not degrade the widget, it breaks it. And it never touches
+`popoutChatWindow`, which still takes the host out of the message, so the theft
+path survives the fix. The patch here covers both.
 
 Neither had landed at 4.17.1. When one does land, the reproducibility gate below
 tells you: the shipped bundle's hash changes, and the patch stops applying.

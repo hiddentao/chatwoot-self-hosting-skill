@@ -17,9 +17,17 @@ account.enable_features!('conversation_unread_counts')
 
 # The address visitor transcript emails come from. It is account-wide: a widget
 # inbox cannot have its own.
+#
+# Compare the stored column, not the reader. Account#support_email falls back to
+# MAILER_SENDER_EMAIL when the column is null, so an operator who uses the same
+# address for both would satisfy a reader comparison with an unwritten column,
+# and transcript mail would then follow operator mail for ever after.
 support_email = ENV.fetch('SUPPORT_EMAIL')
-account.update!(support_email: support_email) unless account.support_email == support_email
+stored = account.attributes['support_email']
+account.update!(support_email: support_email) unless stored == support_email
+account.reload
 
 puts "account         : #{account.name} (id #{account.id})"
-puts "support email   : #{account.support_email}"
+puts "support email   : #{account.attributes['support_email'].inspect} stored"
+puts "                  #{account.support_email} effective"
 puts "unread counts   : #{account.feature_enabled?('conversation_unread_counts')}"

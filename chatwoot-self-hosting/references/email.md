@@ -136,9 +136,10 @@ address back is usually standing in that branch.
 
 One UI detail costs an afternoon if you do not know it. The SMTP panel stays
 hidden until IMAP (the protocol that reads mail out of a mailbox) is enabled
-(`ConfigurationPage.vue:382`). Configure IMAP first, and the SMTP fields
-appear. An operator looking for the From address on a half-configured inbox
-finds no such field and concludes the feature is premium.
+(`ConfigurationPage.vue:393` renders `SmtpSettings` only when
+`inbox.imap_enabled`). Configure IMAP first, and the SMTP fields appear. An
+operator looking for the From address on a half-configured inbox finds no such
+field and concludes the feature is premium.
 
 ##### Two inboxes per website
 
@@ -234,11 +235,14 @@ to read, and 4.17.1 ships no adapter for one. Nothing turns the reply into a
 message, so it is lost, with no bounce and no trace in the conversation. The
 visitor believes they answered you.
 
-What Chatwoot needs is an adapter for whatever receives. The MX record (the DNS
-record that names the host accepting mail for a domain) for the reply domain
-must point at SES, Mailgun, Postmark, SendGrid, or a local Postfix relay. Check
-the adapter list on the release you run rather than on this one. Expect two
-providers: one that sends, one that receives.
+What Chatwoot needs is an Action Mailbox ingress for whatever receives. The MX
+record (the DNS record that names the host accepting mail for a domain) for the
+reply domain must point at something on that list. At 4.17.1 it is six: SES,
+Mailgun, Mandrill, Postmark, SendGrid, or a local Exim, Postfix or Qmail relay.
+You choose with `RAILS_INBOUND_EMAIL_SERVICE`, and it defaults to `relay`, which
+is not what you want if a hosted receiver is doing the work. Check the list on
+the release you run rather than on this one. Expect two providers: one that
+sends, one that receives.
 
 The sending domain and the reply domain need not be the same name. Only the
 domain that receives needs an MX pointing at the adapter, so an installation

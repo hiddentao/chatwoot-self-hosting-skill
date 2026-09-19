@@ -30,7 +30,7 @@ if [[ -n "${PGURL:-}" ]] && command -v psql >/dev/null; then
   if [[ -z "$VER" ]]; then
     bad "cannot connect with PGURL. Check the host, the port and the network."
   else
-    ok "server_version $VER (Chatwoot needs 14 or later)"
+    ok "server_version $VER (docs say 14 minimum; upstream runs 16 everywhere)"
     for ext in pg_stat_statements pg_trgm pgcrypto plpgsql vector; do
       AVAIL="$(psql "$PGURL" -tAc "SELECT 1 FROM pg_available_extensions WHERE name='$ext'" 2>/dev/null)"
       INST="$(psql "$PGURL" -tAc "SELECT 1 FROM pg_extension WHERE extname='$ext'" 2>/dev/null)"
@@ -62,7 +62,8 @@ q '3. Can the admin role create extensions and hand over ownership?'
 if [[ -n "${PGURL:-}" ]] && command -v psql >/dev/null; then
   WHO="$(psql "$PGURL" -tAc 'SELECT current_user' 2>/dev/null)"
   SUPER="$(psql "$PGURL" -tAc "SELECT rolsuper FROM pg_roles WHERE rolname=current_user" 2>/dev/null)"
-  [[ -n "$WHO" ]] && ok "connected as $WHO, superuser=$SUPER"
+  if [[ -n "$WHO" ]]; then ok "connected as $WHO, superuser=$SUPER"
+  else bad 'cannot connect with PGURL, so nothing below was measured.'; fi
   echo '                 Not superuser is normal on a managed cluster. What'
   echo '                 matters is whether db-init.sql runs without error:'
   echo '                 it falls back to explicit grants when ownership is refused.'
@@ -73,8 +74,11 @@ fi
 q '4. What is the statement timeout, and will it survive a migration?'
 if [[ -n "${PGURL:-}" ]] && command -v psql >/dev/null; then
   ST="$(psql "$PGURL" -tAc 'SHOW statement_timeout' 2>/dev/null)"
-  if [[ -z "$ST" || "$ST" == "0" ]]; then
-    ok "statement_timeout is ${ST:-unknown}, so nothing cuts a long migration"
+  if [[ -z "$ST" ]]; then
+    # An empty result means the connection failed, which is not a pass.
+    bad 'cannot read statement_timeout: the connection failed. Not a pass.'
+  elif [[ "$ST" == "0" ]]; then
+    ok 'statement_timeout is 0, so nothing cuts a long migration'
   else
     bad "statement_timeout is $ST. Pass POSTGRES_STATEMENT_TIMEOUT=600s to the"
     echo '                 prepare command, and only to that command.'
@@ -126,7 +130,11 @@ q '7. Which client address reaches Rails, and can a client forge it?'
 if [[ -n "${BASE_URL:-}" ]] && command -v curl >/dev/null; then
   CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 \
     -H 'X-Forwarded-For: 203.0.113.1' -H 'CF-Connecting-IP: 203.0.113.1' "${BASE_URL%/}/api")"
-  ok "the public address answered $CODE to a request carrying forged address headers"
+  if [[ "$CODE" == "000" ]]; then
+    bad 'the request never completed, so nothing was measured. Check BASE_URL.'
+  else
+    ok "the public address answered $CODE to a request carrying forged address headers"
+  fi
   echo '                 That only proves it answered. Read the origin log for'
   echo '                 that request and see which address Rails recorded. If it'
   echo '                 is 203.0.113.1, a client picks its own rate-limit bucket.'

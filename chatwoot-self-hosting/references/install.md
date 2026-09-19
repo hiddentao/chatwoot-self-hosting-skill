@@ -53,10 +53,11 @@ cloud-init, put the package install and the swap block in the instance's user
 data, so a rebuilt host comes back with both.
 
 One thing to know before you gate anything on it: `cloud-init status --wait`
-exits non-zero when first boot finished with recoverable warnings, which is
-common and harmless. A script that treats that exit code as failure stops on a
-host that is perfectly fine. Wait for it, ignore the code, and assert what you
-actually need instead, which is that Docker and Compose respond.
+exits 2 when cloud-init finishes but hit what its documentation calls
+recoverable errors, which on a first boot is often nothing you need to act on. A
+script that treats any non-zero exit as failure stops on a host that is fine.
+Wait for it, ignore the code, and assert what you actually need instead, which
+is that Docker and Compose respond.
 
 ```
 cloud-init status --wait || true
