@@ -41,6 +41,19 @@ value from the installation this skill was cut from has travelled with it, that
 the marketplace manifest matches the repository, and that there is exactly one
 `SKILL.md`. CI runs it on every pull request.
 
+Two of those checks exist because the thing they check for shipped once, and
+both are worth keeping in mind when you edit:
+
+- The reference table's line counts have to be the real ones. They exist so an
+  agent can budget a read, and an agent that finds the first number wrong has no
+  reason to trust the next one. Update them in the same commit as the prose, or
+  the build fails.
+- Every variable a template refers to has to be one `env.template` defines. An
+  absent variable is not an untested design, it is a template that cannot start,
+  and the unfilled-placeholder grep in `install.md` cannot catch it because
+  there is nothing there to be unfilled. `STAGING_IMAGE` is the one allowed
+  exception, because it is set per run rather than stored.
+
 ## Claims
 
 This skill came from one installation, read against one release of Chatwoot. So

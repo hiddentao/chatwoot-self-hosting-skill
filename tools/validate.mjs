@@ -90,6 +90,32 @@ for (const [file, text] of files) {
   check(!/[—–]/.test(text), `${file}: contains an em or en dash`);
 }
 
+// --- every variable a template needs is one env.template defines ------------
+// An absent variable is not an untested design, it is a broken template, and
+// the unfilled-placeholder grep cannot catch it because there is nothing there
+// to be unfilled. This check exists because that shipped once.
+{
+  const TPL = `${SKILL_DIR}/tools/templates`;
+  // Set on the command line for one run, deliberately not in the env file.
+  const EXTERNAL = new Set(["STAGING_IMAGE"]);
+  const defined = new Set(
+    [...readFileSync(`${TPL}/env.template`, "utf8").matchAll(/^([A-Z][A-Z0-9_]*)=/gm)]
+      .map((m) => m[1]));
+  for (const f of readdirSync(TPL)) {
+    if (f === "env.template") continue;
+    const text = readFileSync(`${TPL}/${f}`, "utf8");
+    // ${VAR}, ${VAR:?...}, ${VAR:-...} in compose; {$VAR} in a Caddyfile.
+    const used = new Set([
+      ...[...text.matchAll(/\$\{([A-Z][A-Z0-9_]*)[:}]/g)].map((m) => m[1]),
+      ...[...text.matchAll(/\{\$([A-Z][A-Z0-9_]*)\}/g)].map((m) => m[1]),
+    ]);
+    for (const v of used) {
+      if (EXTERNAL.has(v) || defined.has(v)) continue;
+      fail.push(`tools/templates/${f}: needs ${v}, which env.template does not define`);
+    }
+  }
+}
+
 // --- nothing from the installation this was cut from ------------------------
 (function walk(d) {
   for (const e of readdirSync(d, { withFileTypes: true })) {
