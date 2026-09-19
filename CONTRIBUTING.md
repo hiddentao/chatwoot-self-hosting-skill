@@ -3,8 +3,8 @@
 Issues and pull requests are welcome.
 
 Everything in this repository is prose an agent reads and acts on, so the
-writing is the product. Two checks stand between a change and a merge, and only
-one of them is automated.
+writing is the product. Three conventions govern it, and the validator can only
+see the third.
 
 ## Write it through the humanizer skill
 
@@ -27,6 +27,28 @@ It catches what the validator cannot see:
 
 A reference that reads like a sales page is a reference an agent will summarise
 back at you instead of following.
+
+## Write forwards, not against
+
+Say what to do and why it works. Do not frame the skill, or a section of it,
+against what went wrong somewhere else: no origin stories about a painful
+build, no lists of what someone got wrong before, no characterising upstream or
+another project as careless.
+
+The reason is practical rather than diplomatic. A sentence about a past mistake
+carries no instruction, so an agent reading it has nothing to act on, and a
+reader who does not share the history cannot tell which parts still apply.
+"Leaving `allowed_domains` blank removes the framing restriction" is usable on
+any release. "We learned the hard way that blank domains bite" is not.
+
+This applies to prose, headings, commit messages and pull request descriptions.
+Two things it does not forbid:
+
+- Naming a specific upstream behaviour, with the release it was read in, and
+  saying plainly what it does. That is the substance of this skill.
+- Recording that something was tried and did not work, where the alternative is
+  the recommendation. Say what was measured and what followed from it, and skip
+  the narrative.
 
 ## Run the validator
 

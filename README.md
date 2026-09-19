@@ -20,14 +20,6 @@ a chat widget any website can embed, and a widget script carrying a published
 vulnerability that Chatwoot has not fixed. The installation works, the dashboard
 is green, and the problems are found by someone else.
 
-This skill came out of building one such installation properly and writing down
-everything that went wrong. Most of that turned out to have nothing to do with
-the hosting provider. It was Chatwoot behaviour that is not documented, does not
-fail loudly, and costs an evening each time you meet it: a setting whose value
-`off` means on, a database port that makes the container wait for ever instead
-of reporting an error, a migration killed by a timeout nobody set, a widget any
-site can embed because the domain list was left blank.
-
 The skill gives an agent eleven rules, eight reference files and a set of
 working files: the widget patch and the script that builds and tests it, the
 Chatwoot console scripts, compose and proxy templates, an outside-in checker,
@@ -182,8 +174,8 @@ byte for byte.
 ## Contributing
 
 Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers
-the two checks a change goes through: the `humanizer` skill over any prose you
-add, and the validator.
+the writing conventions, including running the `humanizer` skill over any prose
+you add, and the validator that every change has to pass.
 
 ```bash
 node tools/validate.mjs

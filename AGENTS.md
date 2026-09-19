@@ -78,7 +78,6 @@ does not touch. None of these have a default worth inheriting.
 ## Editing this skill itself
 
 This file is the rules, for your installation. If you are changing the skill
-rather than using it, put every new or reworded sentence through the `humanizer`
-skill first, then run `node tools/validate.mjs`. `CONTRIBUTING.md` in the
-skill's own repository has both checks in full, along with the rule that every
-claim names the Chatwoot release it was verified against.
+rather than using it, `CONTRIBUTING.md` in the skill's own repository has the
+conventions: how prose is written, how a claim records the release it was
+verified against, and the checks a change goes through.
