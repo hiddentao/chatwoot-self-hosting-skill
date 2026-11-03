@@ -20,10 +20,11 @@ widget any website can embed, and a widget script carrying a published
 vulnerability that Chatwoot has not fixed. None of them announce themselves, and
 a working installation looks the same either way.
 
-The skill gives an agent eleven rules, eight reference files and a set of
+The skill gives an agent eleven rules, nine reference files and a set of
 working files: the widget patch and the script that builds and tests it, the
 Chatwoot console scripts, compose and proxy templates, an outside-in checker,
-and a probe that asks eight questions of whatever stack you are considering.
+a probe that asks eight questions of whatever stack you are considering, and an
+optional add-on that translates conversations in both directions.
 
 Everything was checked against Chatwoot 4.17.1 by reading the source at that
 tag, and every claim says so.
@@ -158,13 +159,14 @@ verified.
 ## How it is laid out
 
 `chatwoot-self-hosting/SKILL.md` holds the eleven rules, the build order, the
-provider requirements and the trap table in under 500 lines. The eight files in
+provider requirements and the trap table in under 500 lines. The nine files in
 `references/` each cover one topic in depth, and `tools/` holds the widget
-patch, the console scripts, the templates and the probes.
+patch, the console scripts, the templates, the probes and the translation
+add-on.
 
 An agent reads `SKILL.md` every time it uses the skill, so the spec asks for it
 to stay under 500 lines and the validator enforces it. The references add about
-3,500 lines, and the agent reads each one only when a task needs it.
+3,900 lines, and the agent reads each one only when a task needs it.
 
 The widget patch is shipped as a patch, and the built script is not. You build
 it against the release you pinned, and the build script refuses to write

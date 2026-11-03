@@ -6,7 +6,7 @@ that tag, and they apply on any provider.
 
 This file is for agents without Agent Skills support. If your tool supports
 skills, install the `chatwoot-self-hosting/` directory instead. It has the full
-detail in eight reference files, and the agent reads each one only when a task
+detail in nine reference files, and the agent reads each one only when a task
 needs it.
 
 ## The rules
@@ -72,8 +72,9 @@ restore without them is not a restore.
 
 How many people answer conversations, what a public widget is allowed to cost
 you in spam and storage, whether message previews may cross a third party's push
-relay, and what to do about the article-viewer CVE that serving your own SDK
-does not touch. None of these have a default worth inheriting.
+relay, what to do about the article-viewer CVE that serving your own SDK does
+not touch, and whether conversations may go to a translation service so that one
+operator can answer any language. None of these have a default worth inheriting.
 
 ## Editing this skill itself
 
