@@ -1,6 +1,6 @@
 ---
 name: chatwoot-self-hosting
-description: Deploy, harden, operate and review a self-hosted Chatwoot installation. The installation keeps its admin console off the public internet, serves a widget SDK patched against a disclosed and unfixed CVE, locks every widget inbox to the sites allowed to embed it, signs visitor identities, and survives upgrades because every release is pinned and rehearsed. Use this skill for any self-hosted Chatwoot CE deployment, on any provider, with managed Postgres and object storage or on a single box. Also use it when someone mentions Chatwoot, a website inbox, a website token, HMAC identity validation, allowed domains, the widget sdk.js, chatwoot_prepare, Sidekiq, super admin, ENABLE_ACCOUNT_SIGNUP, transcript email, or asks why their widget can be embedded anywhere, why signup is still open after turning it off, or why a migration timed out. Read it before the first container starts, not after the installation is public.
+description: Deploy, harden, operate and review a self-hosted Chatwoot installation. The installation keeps its admin console off the public internet, serves a widget SDK patched against a disclosed and unfixed CVE, locks every widget inbox to the sites allowed to embed it, signs visitor identities, and survives upgrades because every release is pinned and rehearsed. Use this skill for any self-hosted Chatwoot CE deployment, on any provider, with managed Postgres and object storage or on a single box. Also use it when someone mentions Chatwoot, a website inbox, a website token, HMAC identity validation, allowed domains, the widget sdk.js, automatic translation, chatwoot_prepare, Sidekiq, super admin, ENABLE_ACCOUNT_SIGNUP, transcript email, or asks why their widget can be embedded anywhere, why signup is still open after turning it off, or why a migration timed out. Read it before the first container starts, not after the installation is public.
 license: MIT
 metadata:
   repository: https://github.com/hiddentao/chatwoot-self-hosting-skill
@@ -40,18 +40,20 @@ references the task needs.
 | Reference | Open it when you are | Lines |
 | --- | --- | --- |
 | [providers](references/providers.md) | choosing where Postgres, storage, mail and TLS come from, or checking a stack you already have against what Chatwoot needs | 599 |
-| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 584 |
+| [install](references/install.md) | building an installation, in the order that keeps it private until it is hardened | 585 |
 | [widget-security](references/widget-security.md) | patching the widget SDK, pinning it, or deciding what to do about either CVE | 490 |
 | [inboxes-and-identity](references/inboxes-and-identity.md) | creating a website inbox, restricting who may embed it, or keeping one visitor one contact across several sites | 530 |
 | [email](references/email.md) | deciding what address mail comes from, or finding out why replies go nowhere | 306 |
 | [hardening](references/hardening.md) | closing the installation to everyone but its operators, or adapting the single-operator model to a team | 481 |
-| [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 440 |
-| [verification](references/verification.md) | about to claim the installation is safe | 274 |
+| [upgrades](references/upgrades.md) | moving to a new release, or recovering from one | 444 |
+| [verification](references/verification.md) | about to claim the installation is safe | 278 |
+| [translation](references/translation.md) | answering visitors in their own language, automatically, in both directions | 184 |
 
 `tools/` beside them holds what is worth having exactly rather than retyped: the
 SDK patch and its build script, the Rails console scripts, the compose and proxy
-templates, an outside-in checker and a probe that asks
-[the provider questions](#questions-to-ask-of-any-stack) of a candidate stack.
+templates, an outside-in checker, a probe that asks
+[the provider questions](#questions-to-ask-of-any-stack) of a candidate stack,
+and an optional translation add-on with its test.
 
 Read [verification](references/verification.md) before you tell anyone the
 installation is safe. A green dashboard shows what it was configured to show,
@@ -236,7 +238,7 @@ the release and not with the host.
 
 ## What to decide for your own installation
 
-This skill gives you a method and a shape. Four decisions are yours.
+This skill gives you a method and a shape. Five decisions are yours.
 
 **How many people answer conversations.** The scripts and the audit encode a
 single operator, because that is what was built. A team changes the audit's
@@ -255,6 +257,12 @@ of the four. Set them against your own tolerance.
 through Chatwoot's relay unless you build and ship your own mobile app. For most
 operators the relay is the right trade. It is still a privacy decision, so make
 it deliberately rather than by leaving a default alone.
+
+**Whether conversations may be machine translated.** The translation add-on
+sends every visitor message, and every reply it translates, to Google, and
+Chatwoot stores the Google key unencrypted. In exchange, one operator can
+answer any language. See
+[translation](references/translation.md#cost-privacy-and-limits).
 
 **What to do about the second CVE.** The article-viewer XSS lives inside the
 application bundle, not the standalone SDK, so serving your own file does not
@@ -300,8 +308,8 @@ is an outage in someone else's deployment.
 
 ## The trap table
 
-Fifteen behaviours that cost time to find. Each line links to the reference that
-explains it.
+Seventeen behaviours that cost time to find. Each line links to the reference
+that explains it.
 
 | # | Trap | Where |
 | --- | --- | --- |
@@ -320,6 +328,8 @@ explains it.
 | 13 | Realtime notifications are dropped by account, so multi-account notifies you of nothing | [inboxes-and-identity](references/inboxes-and-identity.md#one-account) |
 | 14 | `conversation_unread_counts` ships off | [install](references/install.md#account-settings) |
 | 15 | Installation branding is not yours to change, and the job that enforces it is stripped from the CE image | [hardening](references/hardening.md#branding) |
+| 16 | A fixed widget `locale` sends every visitor the email prompts in that language | [translation](references/translation.md#the-widgets-language) |
+| 17 | A translation call that outlasts the 15-second request limit loses the reply, and the client's own limit does not cover sign-in | [translation](references/translation.md#the-time-limit) |
 
 ## Pre-launch checklist
 

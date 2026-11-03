@@ -168,6 +168,10 @@ accepts a command-line upload can still reject the library's.
 The mobile app connects and receives a push. Enter the installation address,
 log in, and send yourself a message from another browser.
 
+With the translation add-on, a message in another language shows translated,
+with **View original**, in the dashboard and in the mobile app. Check it after
+every upgrade. See [translation](translation.md#upgrades).
+
 Run the first three after every SDK change. Run the rest after setup and after
 any change to mail, storage or the edge.
 

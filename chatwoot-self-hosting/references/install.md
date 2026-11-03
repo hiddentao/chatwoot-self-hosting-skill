@@ -367,6 +367,7 @@ ssh <host> "cd /opt/chatwoot && docker compose exec -T -e INBOX_NAME=Example \
 | `auto-assign.rb` | `INBOX_NAME` | the assignment rule, and anything already waiting |
 | `rotate-hmac.rb` | `INBOX_NAME` | a fresh HMAC token, deliberately not printed |
 | `audit.rb` | none | the database audit; exits non-zero on any broken rule |
+| `translate-test.rb` | `TRANSLATE_TEST=1` | tests the translation add-on; rehearsal only, see [translation](translation.md#upgrades) |
 
 All but one are safe to run again: they find an existing record and update it,
 and the three that take an inbox match its name without case, so an inbox

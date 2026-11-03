@@ -11,6 +11,11 @@ x-chatwoot: &chatwoot
     NODE_ENV: production
     RAILS_ENV: production
     INSTALLATION_ENV: docker
+  # Optional Rails add-ons, such as automatic translation (translation.md).
+  # Rails loads every .rb file under config/initializers, sub-folders
+  # included, and only at start-up. An empty folder loads nothing.
+  volumes:
+    - ./initializers:/app/config/initializers/local:ro
   restart: unless-stopped
 
 services:

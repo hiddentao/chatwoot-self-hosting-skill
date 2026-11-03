@@ -18,8 +18,13 @@ x-chatwoot: &chatwoot
   # Attachments live on the host. Rails and Sidekiq both write here, so both
   # mount it. With ACTIVE_STORAGE_SERVICE=local this is the only state a
   # rebuild cannot recreate from the database.
+  #
+  # Optional Rails add-ons, such as automatic translation (translation.md).
+  # Rails loads every .rb file under config/initializers, sub-folders
+  # included, and only at start-up. An empty folder loads nothing.
   volumes:
     - storage_data:/app/storage
+    - ./initializers:/app/config/initializers/local:ro
   restart: unless-stopped
 
 services:

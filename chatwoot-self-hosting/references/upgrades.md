@@ -205,6 +205,10 @@ rehearsal yourself, through a tunnel, before you confirm anything:
 ssh -L 3001:127.0.0.1:3001 operator@<host address>
 ```
 
+If you run the translation add-on, its test belongs here too: it runs in the
+rehearsal container and exits non-zero when the new release moved something the
+add-on needs. See [translation](translation.md#upgrades).
+
 Open the dashboard, open a conversation with real history in it, open the inbox
 settings page. Three pages that read three different parts of the schema tell
 you more than any amount of green output, because the failure mode of a partly

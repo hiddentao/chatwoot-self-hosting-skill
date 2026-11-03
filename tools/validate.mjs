@@ -6,7 +6,7 @@ import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 const SKILL_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../chatwoot-self-hosting");
 const ORDER = ["providers", "install", "widget-security", "inboxes-and-identity",
-               "email", "hardening", "upgrades", "verification"];
+               "email", "hardening", "upgrades", "verification", "translation"];
 
 // The skill was cut from one operator's live installation. These are the values
 // that must not have travelled with it. A hostname, a cluster, a bucket, an
